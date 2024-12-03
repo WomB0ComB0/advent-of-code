@@ -1,0 +1,15 @@
+{
+  "test": {
+    "include": [
+      "day_*.*",
+      "**/*.test.*",
+      "**/*_test.*",
+      "**/test.*",
+      "**/__tests__/**"
+    ]
+  },
+  "imports": {
+    "@macil/aocd": "jsr:@macil/aocd@^2.0.2",
+    "@std/assert": "jsr:@std/assert@^1.0.6"
+  }
+}
