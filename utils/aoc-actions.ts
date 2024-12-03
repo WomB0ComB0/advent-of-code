@@ -1,6 +1,6 @@
 require('dotenv').config();
 import https from 'https';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 
 /**
  * Downloads the puzzle input for a specific day and year from Advent of Code.
