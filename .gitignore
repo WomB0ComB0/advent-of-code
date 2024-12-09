@@ -1,6 +1,156 @@
-node_modules
-package-lock.json
-bun.lockb
-yarn.lock
-pnpm-lock.yaml
+# Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+pip-log.txt
+pip-delete-this-directory.txt
+.egg-info/
+# Caches
+.cache
+.ruff_cache/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.tox/
+.mypy_cache/
+
+# Python Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Python Environments
 .env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Coverage and Test Reports
+coverage
+*.lcov
+.nyc_output
+htmlcov/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+bower_components
+input.txt
+# Build outputs
+.next
+out
+.nuxt
+dist
+target/
+build/Release
+
+# IDE and Editor files
+.idea
+.vscode/
+.vscode-test
+.spyderproject
+.spyproject
+.ropeproject
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional caches
+.npm
+.eslintcache
+.stylelintcache
+.parcel-cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.yarn-integrity
+
+# System Files
+.DS_Store
+
+# Other
+Cargo.lock
+*.so
+*.manifest
+*.spec
+*.mo
+*.pot
+local_settings.py
+db.sqlite3
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+.ipynb_checkpoints
+celerybeat-schedule
+*.sage.py
+/site
+
+# LaTeX
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+*.dvi
+*.xdv
+*-converted-to.*
+*.pdf
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync

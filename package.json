@@ -2,21 +2,33 @@
   "name": "advent-of-code",
   "version": "1.0.0",
   "description": "Root project for all advent of code challenges I've done",
+  "license": "ISC",
+  "author": "Mike Odnis <mike@mikeodnis.dev>",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "bunx biome check --write ./ || true",
+    "readme": "bun ./scripts/update-readme.ts",
+    "start": "bun ./scripts/index.ts",
+    "start:year": "bun ./scripts/start.ts",
+    "kebab": "bun ./scripts/kebab.ts",
+    "note": "bun ./scripts/note.ts",
+    "test": "vitest run"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/node": "^22.10.1",
     "@types/shelljs": "^0.8.15",
     "cheerio": "^1.0.0",
-    "dotenv": "^16.4.6",
+    "dotenv": "^16.4.7",
     "nodemon": "^3.1.7",
+    "prettier": "^3.4.2",
     "shelljs": "^0.8.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@jsheaven/perf": "^1.1.1"
   }
 }
