@@ -20,5 +20,5 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["challenges/**/*", "utils/**/*", "template/**/*", "scripts/kebab.ts"]
+  "include": ["challenges/**/*", "utils/**/*", "template/**/*", "scripts/kebab.ts", "test/**/*"]
 }

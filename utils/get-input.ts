@@ -19,7 +19,11 @@ import { join } from 'path';
  * - Input is decoded as UTF-8 text
  * - Path is constructed using path.join for cross-platform compatibility
  */
-export const getInput = (year: number, day: number): string => {
-  const path = join(__dirname, '..', 'challenges', year.toString(), day.toString(), 'input.txt');
-  return readFileSync(path, 'utf-8');
+export const getInput = (route: string): string => {
+  try {
+    console.log(route);
+    return readFileSync(route, 'utf-8');
+  } catch (error) {
+    throw new Error(`Could not read input file at ${route}: ${error.message}`);
+  }
 };

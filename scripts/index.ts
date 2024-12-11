@@ -7,58 +7,11 @@
 
 import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
 import { config } from 'dotenv';
-import { readdir, stat, writeFile } from 'fs/promises';
 import { cp } from 'shelljs';
 import { downloadInputForYearAndDay, getPuzzleDescription } from '../utils/aoc-actions';
 
 config();
-
-async function updateWorkspaceMembers(year: number) {
-  const baseDir = path.join(process.cwd(), 'challenges', year.toString());
-  const rootCargoTomlPath = path.join(process.cwd(), 'Cargo.toml');
-
-  try {
-    let existingMembers: string[] = [];
-    if (existsSync(rootCargoTomlPath)) {
-      const content = readFileSync(rootCargoTomlPath, 'utf8');
-      const membersMatch = content.match(/members\s*=\s*\[([\s\S]*?)\]/);
-      if (membersMatch) {
-        existingMembers = membersMatch[1]
-          .split(',')
-          .map(m => m.trim())
-          .filter(m => m && !m.includes(`challenges/${year}/`));
-      }
-    }
-
-    const directories = await readdir(baseDir);
-    const newMembers: string[] = [];
-
-    for (const dir of directories) {
-      const rsDirPath = path.join(baseDir, dir, 'rs');
-      const cargoTomlPath = path.join(rsDirPath, 'Cargo.toml');
-
-      try {
-        const stats = await stat(cargoTomlPath);
-        if (stats.isFile()) {
-          newMembers.push(`"challenges/${year}/${dir}/rs"`);
-        }
-      } catch (error) {
-        console.warn(`Skipping ${dir}: No valid Cargo.toml found.`);
-      }
-    }
-
-    const allMembers = [...existingMembers, ...newMembers].filter(Boolean);
-    
-    const cargoTomlContent = ['[workspace]', 'members = [', allMembers.join(',\n  '), ']'].join('\n');
-
-    await writeFile(rootCargoTomlPath, cargoTomlContent, { encoding: 'utf8' });
-    console.log('Updated Cargo.toml with current project members.');
-  } catch (error) {
-    console.error('Failed to update workspace members:', error);
-  }
-}
 
 /**
  * Maps language aliases to their standardized file extensions
@@ -119,7 +72,6 @@ const createFromTemplate = async () => {
     cp('-rf', `template/${templateLang}/*`, langPath);
 
     if (templateLang === 'rs') {
-      await updateWorkspaceMembers(Number.parseInt(year));
       const cargoTomlPath = `${langPath}/Cargo.toml`;
       if (existsSync(cargoTomlPath)) {
         let cargoToml = readFileSync(cargoTomlPath, 'utf8');
@@ -227,7 +179,6 @@ const runChallenge = () => {
  */
 const runLanguageImplementation = (folder: string) => {
   if (existsSync(`${folder}/Cargo.toml`)) {
-    console.log('Running Rust project...');
     spawn('cargo', ['run'], {
       stdio: 'inherit',
       shell: true,
@@ -241,7 +192,7 @@ const runLanguageImplementation = (folder: string) => {
 
   if (pythonFile) {
     console.log(`Running Python file: ${pythonFile}`);
-    spawn('python3', [`${folder}/${pythonFile}`], {
+    spawn('python', [`${folder}/${pythonFile}`], {
       stdio: 'inherit',
       shell: true,
     });

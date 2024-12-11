@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import os 
+import os
 
 setup(
     name="advent-of-code",
@@ -24,6 +24,10 @@ setup(
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
     ],
-    long_description=open("README.md", encoding="utf-8").read() if os.path.exists("README.md") else "",
+    long_description=(
+        open("README.md", encoding="utf-8").read()
+        if os.path.exists("README.md")
+        else ""
+    ),
     long_description_content_type="text/markdown",
 )

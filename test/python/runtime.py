@@ -1,9 +1,17 @@
+import os
+import sys
 import big_o
 import random
 from typing import Callable
 from dataclasses import dataclass
 import logging
 from test.python.logs import TestResults
+
+# Add project root to Python path
+project_root = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..")
+)
+sys.path.insert(0, project_root)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

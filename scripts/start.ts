@@ -12,7 +12,7 @@ async function main() {
   for (const day of Array.from({ length: d }, (_, i) => i + 1)) {
     try {
       console.log(`Attempting day ${day} of year ${year}`);
-      await $`bun run start create ${year} ${day}`;
+      await $`bun run start create ${year} ${day} typescript`;
       await $`bun run start create ${year} ${day} python`;
       await $`bun run start create ${year} ${day} rust`;
     } catch (error) {
