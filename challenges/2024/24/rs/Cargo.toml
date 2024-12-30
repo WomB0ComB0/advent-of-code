@@ -1,0 +1,18 @@
+[package]
+name = "aoc_2024_day24"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ctor = { workspace = true }
+anyhow = { workspace = true }
+big-o-test = { workspace = true }
+colored = { workspace = true }
+log = { workspace = true }
+simple_logger = { workspace = true }
+
+[[bin]]
+name = "aoc"
+path = "index.rs"
