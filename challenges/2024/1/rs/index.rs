@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use big_o_test::*;
 use log::{info, LevelFilter};
 use simple_logger::SimpleLogger;
+use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -42,14 +43,54 @@ fn read_input() -> Result<String> {
 
 /// Solves part 1 of the puzzle
 fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+    let mut left = vec![];
+    let mut right = vec![];
+    
+    for (idx, value) in input
+        .split_whitespace()
+        .filter_map(|s| s.parse::<u32>().ok())
+        .enumerate()
+    {
+        if (idx % 2) == 0 {
+            left.push(value);
+        } else {
+            right.push(value);
+        }
+    }
+
+    left.sort();
+    right.sort();
+
+    left.iter()
+        .zip(right.iter())
+        .map(|(lhs, rhs)| lhs.abs_diff(*rhs))
+        .sum()
 }
 
 /// Solves part 2 of the puzzle
 fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+    let mut left = vec![];
+    let mut right = vec![]; 
+    
+    for (idx, value) in input
+        .split_whitespace()
+        .filter_map(|s| s.parse::<u32>().ok())
+        .enumerate()
+    {
+        if (idx % 2) == 0 {
+            left.push(value);
+        } else {
+            right.push(value);
+        }
+    }
+    
+    let mut counts = BTreeMap::new();
+    for value in right {
+        *counts.entry(value).or_insert(0) += 1;
+    }
+    
+    left.iter().map(|x| x * counts.get(x).unwrap_or(&0)).sum()
+
 }
 
 /// Main entry point for the program
