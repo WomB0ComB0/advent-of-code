@@ -45,7 +45,7 @@ fn read_input() -> Result<String> {
 fn part1(input: &str) -> u32 {
     let mut left = vec![];
     let mut right = vec![];
-    
+
     for (idx, value) in input
         .split_whitespace()
         .filter_map(|s| s.parse::<u32>().ok())
@@ -70,8 +70,8 @@ fn part1(input: &str) -> u32 {
 /// Solves part 2 of the puzzle
 fn part2(input: &str) -> u32 {
     let mut left = vec![];
-    let mut right = vec![]; 
-    
+    let mut right = vec![];
+
     for (idx, value) in input
         .split_whitespace()
         .filter_map(|s| s.parse::<u32>().ok())
@@ -83,14 +83,13 @@ fn part2(input: &str) -> u32 {
             right.push(value);
         }
     }
-    
+
     let mut counts = BTreeMap::new();
     for value in right {
         *counts.entry(value).or_insert(0) += 1;
     }
-    
-    left.iter().map(|x| x * counts.get(x).unwrap_or(&0)).sum()
 
+    left.iter().map(|x| x * counts.get(x).unwrap_or(&0)).sum()
 }
 
 /// Main entry point for the program
@@ -118,7 +117,6 @@ fn main() -> Result<()> {
         || part1(&input), // Changed to u32 instead of f64
         BigOAlgorithmComplexity::ON,
         BigOAlgorithmComplexity::ON,
-        &TimeUnits::MICROSECOND,
     );
     println!("Part 1: {}\n", part1(&input));
 
@@ -135,7 +133,6 @@ fn main() -> Result<()> {
         || part2(&input), // Changed to u32 instead of f64
         BigOAlgorithmComplexity::ON,
         BigOAlgorithmComplexity::ON,
-        &TimeUnits::MICROSECOND,
     );
     println!("Part 2: {}\n", part2(&input));
 

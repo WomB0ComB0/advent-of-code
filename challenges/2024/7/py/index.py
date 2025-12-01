@@ -1,8 +1,8 @@
 """
-    @file index.py
-    @module aoc-manager
-    @description Main script for managing Advent of Code challenges.
-    Handles creating new challenge directories and running solutions in different languages.
+@file index.py
+@module aoc-manager
+@description Main script for managing Advent of Code challenges.
+Handles creating new challenge directories and running solutions in different languages.
 """
 
 import os

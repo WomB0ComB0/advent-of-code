@@ -77,7 +77,6 @@ fn main() -> Result<()> {
         || part1(&input), // Changed to u32 instead of f64
         BigOAlgorithmComplexity::ON,
         BigOAlgorithmComplexity::ON,
-        &TimeUnits::MICROSECOND,
     );
     println!("Part 1: {}\n", part1(&input));
 
@@ -94,7 +93,6 @@ fn main() -> Result<()> {
         || part2(&input), // Changed to u32 instead of f64
         BigOAlgorithmComplexity::ON,
         BigOAlgorithmComplexity::ON,
-        &TimeUnits::MICROSECOND,
     );
     println!("Part 2: {}\n", part2(&input));
 
