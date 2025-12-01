@@ -11,6 +11,13 @@ import logging
 from typing import Optional, Callable
 from functools import lru_cache
 import time
+
+# Add project root to sys.path to enable imports from test module
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from test.python.runtime import test_algorithm, AlgorithmTest
 import random
 
@@ -26,23 +33,22 @@ logger = logging.getLogger(__name__)
 # Add test data generator functions
 def generate_test_data(n: int) -> str:
     """Generate test data of size n for algorithm testing"""
-    # Generate random numbers and join with newlines
-    return "\n".join(str(random.randint(1, 1000)) for _ in range(n))
+    # Generate random directions (L/R) and amounts
+    data = []
+    for _ in range(n):
+        direction = random.choice(['L', 'R'])
+        amount = random.randint(1, 200)
+        data.append(f"{direction}{amount}")
+    return "\n".join(data)
 
 
 def generate_test_data_complex(n: int) -> str:
-    """Generate more complex test data with mixed types"""
+    """Generate more complex test data with varying amounts"""
     data = []
     for _ in range(n):
-        data_type = random.choice(["number", "string", "mixed"])
-        if data_type == "number":
-            data.append(str(random.randint(1, 1000)))
-        elif data_type == "string":
-            data.append("".join(random.choices("abcdefghijk", k=5)))
-        else:
-            data.append(
-                f"{random.randint(1,100)} {''.join(random.choices('abcdefghijk', k=3))}"
-            )
+        direction = random.choice(['L', 'R'])
+        amount = random.choice([random.randint(1, 50), random.randint(50, 200), random.randint(200, 1000)])
+        data.append(f"{direction}{amount}")
     return "\n".join(data)
 
 
@@ -127,8 +133,17 @@ def part1(aoc_input: str) -> str:
     Returns:
         str: The solution to part 1
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    current: int = 50
+    zeroes: int = 0
+    for line in aoc_input.splitlines():
+        directories: str = line[0]
+        amount: int = int(line[1:])
+        if directories == 'L':
+            current = (current - amount) % 100
+        else:
+            current = (current + amount) % 100
+        zeroes += (current == 0)
+    return zeroes   
 
 
 def part2(aoc_input: str) -> str:
@@ -141,9 +156,33 @@ def part2(aoc_input: str) -> str:
     Returns:
         str: The solution to part 2
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
-
+    current: int = 50
+    ans: int = 0
+    
+    # Use lru_cache for memoization to prevent stack overflow
+    @lru_cache(maxsize=None)
+    def f(p, t, dir):
+        if t == 0: return 0
+        if p == 0:
+            return abs(t) // 100
+        elif dir == 'L':
+            new_p = max(p - t, 0) % 100
+            new_t = t - min(p, t)
+            return (new_p == 0) + f(new_p, new_t, dir)
+        else:
+            new_p = (p + min(100 - p, t)) % 100
+            new_t = t - min(100 - p, t)
+            return (new_p == 0) + f(new_p, new_t, dir)
+    
+    for line in aoc_input.splitlines():
+        direction: str = line[0]
+        amount: int = int(line[1:])
+        
+        ans += f(current, amount, direction)
+        if direction == 'L': amount *= -1
+        current = (current + amount) % 100
+    return ans
+   
 
 async def test_solutions():
     """Run performance tests on the solution functions"""
@@ -182,15 +221,17 @@ def main() -> int:
         int: Exit code (0 for success, 1 for failure)
     """
     try:
-        # Dynamically extract year and day from current path
-        current_path = os.path.abspath(os.getcwd())
-        parts = current_path.split(os.sep)
+        # Dynamically extract year and day from script path
+        script_path = os.path.abspath(__file__)
+        parts = script_path.split(os.sep)
 
         try:
-            year = int(parts[-2])
-            day = int(parts[-1])
+            # Script is at challenges/{year}/{day}/py/index.py
+            # So year is at -4 and day is at -3 from the end
+            year = int(parts[-4])
+            day = int(parts[-3])
         except (ValueError, IndexError):
-            logger.error("Unable to extract year and day from current path")
+            logger.error("Unable to extract year and day from script path: %s", script_path)
             return 1
 
         # Retrieve input

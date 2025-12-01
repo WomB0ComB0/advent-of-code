@@ -11,6 +11,7 @@
     "readme": "bun ./scripts/update-readme.ts",
     "start": "bun ./scripts/index.ts",
     "start:year": "bun ./scripts/start.ts",
+    "solve": "bun ./scripts/run.ts",
     "kebab": "bun ./scripts/kebab.ts",
     "note": "bun ./scripts/note.ts",
     "test": "vitest run"

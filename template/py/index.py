@@ -2,7 +2,14 @@
 @file index.py
 @module aoc-manager
 @description Main script for managing Advent of Code challenges.
-Handles creating new challenge directories and running solutions in different languages.
+
+This module provides utilities for:
+- Retrieving puzzle input from local files.
+- Running solutions for Part 1 and Part 2 of a challenge.
+- Performing performance tests on implemented solutions.
+- Handling errors gracefully during input retrieval and solution execution.
+
+It is designed to be executed within a specific challenge directory (e.g., `challenges/2023/01`).
 """
 
 import os
@@ -11,6 +18,12 @@ import logging
 from typing import Optional, Callable
 from functools import lru_cache
 import time
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from test.python.runtime import test_algorithm, AlgorithmTest
 import random
 
@@ -25,13 +38,31 @@ logger = logging.getLogger(__name__)
 
 # Add test data generator functions
 def generate_test_data(n: int) -> str:
-    """Generate test data of size n for algorithm testing"""
-    # Generate random numbers and join with newlines
+    """
+    Generates a string of `n` random integers, each between 1 and 1000,
+    separated by newlines. This is used for basic algorithm testing.
+
+    Args:
+        n (int): The number of random integers to generate.
+
+    Returns:
+        str: A newline-separated string of random integers.
+    """
     return "\n".join(str(random.randint(1, 1000)) for _ in range(n))
 
 
 def generate_test_data_complex(n: int) -> str:
-    """Generate more complex test data with mixed types"""
+    """
+    Generates a string of `n` lines of more complex, mixed-type test data.
+    Each line can contain a random number, a random string, or a combination
+    of both, simulating varied input formats.
+
+    Args:
+        n (int): The number of lines of complex data to generate.
+
+    Returns:
+        str: A newline-separated string of mixed-type data.
+    """
     data = []
     for _ in range(n):
         data_type = random.choice(["number", "string", "mixed"])
@@ -47,7 +78,9 @@ def generate_test_data_complex(n: int) -> str:
 
 
 class AOCError(Exception):
-    """Custom exception for Advent of Code related errors."""
+    """Custom exception for Advent of Code related errors,
+    typically used for issues like missing input files or other operational failures.
+    """
 
     pass
 
@@ -56,17 +89,21 @@ class AOCError(Exception):
 def get_input(year: int, day: int, max_attempts: int = 3) -> str:
     """
     Reads and returns the input file content for a specific Advent of Code challenge.
+    The input file is expected at `challenges/{year}/{day}/input.txt`.
+    It retries reading the file up to `max_attempts` times in case of transient issues.
 
     Args:
-        year (int): The year of the challenge
-        day (int): The day number of the challenge
-        max_attempts (int): Maximum number of read attempts
+        year (int): The year of the challenge (e.g., 2023).
+        day (int): The day number of the challenge (e.g., 1).
+        max_attempts (int): Maximum number of read attempts if the file is not found
+                            or an IO error occurs.
 
     Returns:
-        str: The contents of the input file as a string
+        str: The contents of the input file as a string, with leading/trailing whitespace removed.
 
     Raises:
-        AOCError: If input file cannot be read after max attempts
+        AOCError: If the input file cannot be read after the specified number of attempts,
+                  or if an unexpected IO error occurs.
     """
     path = f"challenges/{year}/{day}/input.txt"
 
@@ -81,12 +118,12 @@ def get_input(year: int, day: int, max_attempts: int = 3) -> str:
             logger.warning("Input file not found (Attempt %d): %s", attempt + 1, path)
             if attempt == max_attempts - 1:
                 raise AOCError(
-                    "Could not read input file after %d attempts", max_attempts
+                    f"Could not read input file after {max_attempts} attempts: {path}"
                 )
         except IOError as e:
             logger.error("Error reading input file: %s", e)
             if attempt == max_attempts - 1:
-                raise AOCError("IO error reading input file: %s", e)
+                raise AOCError(f"IO error reading input file: {e}")
 
     raise AOCError("Unexpected error in input retrieval")
 
@@ -95,15 +132,20 @@ def solve_challenge(
     input_data: str, solver: Callable[[str], str], part_name: str
 ) -> Optional[str]:
     """
-    Generic solver function with error handling and timing.
+    Generic solver function that executes a given challenge part's solver function
+    with error handling and performance timing.
 
     Args:
-        input_data (str): The puzzle input
-        solver (Callable): The solving function for the challenge part
-        part_name (str): Name of the part being solved (for logging)
+        input_data (str): The puzzle input string to be passed to the solver.
+        solver (Callable[[str], str]): The function that implements the logic for
+                                       a specific part of the challenge (e.g., `part1` or `part2`).
+                                       It should accept a string and return a string.
+        part_name (str): A descriptive name for the part being solved (e.g., "Part 1", "Part 2"),
+                         used for logging.
 
     Returns:
-        Optional[str]: Solution to the challenge part
+        Optional[str]: The solution string returned by the solver function if successful,
+                       otherwise `None` if an error occurred during execution.
     """
     try:
         start_time = time.perf_counter()
@@ -119,13 +161,17 @@ def solve_challenge(
 
 def part1(aoc_input: str) -> str:
     """
-    Solves part 1 of the Advent of Code challenge.
+    Solves part 1 of the Advent of Code challenge for the current day.
+    This function should be implemented with the specific logic for Part 1.
 
     Args:
-        aoc_input (str): The puzzle input as a string
+        aoc_input (str): The puzzle input as a string.
 
     Returns:
-        str: The solution to part 1
+        str: The solution to part 1 as a string.
+
+    Raises:
+        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
     # Implement your part 1 solution here
     raise NotImplementedError("Part 1 solution not implemented")
@@ -133,20 +179,29 @@ def part1(aoc_input: str) -> str:
 
 def part2(aoc_input: str) -> str:
     """
-    Solves part 2 of the Advent of Code challenge.
+    Solves part 2 of the Advent of Code challenge for the current day.
+    This function should be implemented with the specific logic for Part 2.
 
     Args:
-        aoc_input (str): The puzzle input as a string
+        aoc_input (str): The puzzle input as a string.
 
     Returns:
-        str: The solution to part 2
+        str: The solution to part 2 as a string.
+
+    Raises:
+        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
     # Implement your part 2 solution here
     raise NotImplementedError("Part 2 solution not implemented")
 
 
 async def test_solutions():
-    """Run performance tests on the solution functions"""
+    """
+    Runs performance tests on the implemented solution functions (`part1` and `part2`).
+    It uses `AlgorithmTest` to define test cases with generated data and
+    `test_algorithm` to analyze their time complexity.
+    Results, including best-fit complexity and other complexity fits, are logged.
+    """
     test_cases = [
         AlgorithmTest(
             name="Part 1 Solution",
@@ -182,15 +237,17 @@ def main() -> int:
         int: Exit code (0 for success, 1 for failure)
     """
     try:
-        # Dynamically extract year and day from current path
-        current_path = os.path.abspath(os.getcwd())
-        parts = current_path.split(os.sep)
+        # Dynamically extract year and day from script path
+        script_path = os.path.abspath(__file__)
+        parts = script_path.split(os.sep)
 
         try:
-            year = int(parts[-2])
-            day = int(parts[-1])
+            # Script is at challenges/{year}/{day}/py/index.py
+            # So year is at -4 and day is at -3 from the end
+            year = int(parts[-4])
+            day = int(parts[-3])
         except (ValueError, IndexError):
-            logger.error("Unable to extract year and day from current path")
+            logger.error("Unable to extract year and day from script path: %s", script_path)
             return 1
 
         # Retrieve input
@@ -224,7 +281,6 @@ def main() -> int:
     except Exception as e:
         logger.error("Unexpected error in main: %s", e)
         return 1
-
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,7 +1,5 @@
 use anyhow::{Context, Result};
-use big_o_test::*;
-use log::{info, LevelFilter};
-use simple_logger::SimpleLogger;
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -13,21 +11,22 @@ struct InputConfig;
 /// Implements input configuration extraction with more robust path handling
 impl InputConfig {
     fn input_path() -> Result<PathBuf> {
-        let current_dir = env::current_dir().context("Failed to get current directory")?;
-
-        let potential_path = current_dir
+        // Use CARGO_MANIFEST_DIR to get the package directory (challenges/2025/1/rs)
+        // Then go up one level to get to challenges/2025/1 and find input.txt
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let input_path = PathBuf::from(manifest_dir)
             .parent()
-            .unwrap_or(&current_dir)
+            .context("Failed to get parent directory")?
             .join("input.txt");
 
-        if potential_path.exists() {
-            println!("Found input file at: {}", potential_path.display());
-            return Ok(potential_path);
+        if input_path.exists() {
+            println!("Found input file at: {}", input_path.display());
+            return Ok(input_path);
         }
 
         Err(anyhow::anyhow!(
             "Could not find input file. Searched path: {:?}",
-            potential_path
+            input_path
         ))
     }
 }
@@ -42,59 +41,81 @@ fn read_input() -> Result<String> {
 
 /// Solves part 1 of the puzzle
 fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+    let mut current: i32 = 50;
+    let mut zeroes: u32 = 0;
+
+    for line in input.lines() {
+        let direction = line.chars().next().unwrap();
+        let amount = line[1..].parse::<i32>().unwrap();
+
+        if direction == 'L' {
+            current = (current - amount).rem_euclid(100);
+        } else {
+            current = (current + amount).rem_euclid(100);
+        }
+
+        if current == 0 {
+            zeroes += 1;
+        }
+    }
+    zeroes
 }
 
 /// Solves part 2 of the puzzle
 fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+    let mut current: i32 = 50;
+    let mut ans: u32 = 0;
+    let mut memo: HashMap<(i32, i32, char), u32> = HashMap::new();
+
+    fn f(p: i32, t: i32, dir: char, memo: &mut HashMap<(i32, i32, char), u32>) -> u32 {
+        if t == 0 {
+            return 0;
+        }
+
+        // Check memoization
+        if let Some(&result) = memo.get(&(p, t, dir)) {
+            return result;
+        }
+
+        let result = if p == 0 {
+            (t.abs() / 100) as u32
+        } else if dir == 'L' {
+            let new_p = (p - t).max(0).rem_euclid(100);
+            let new_t = t - p.min(t);
+            (if new_p == 0 { 1 } else { 0 }) + f(new_p, new_t, dir, memo)
+        } else {
+            let new_p = (p + (100 - p).min(t)).rem_euclid(100);
+            let new_t = t - (100 - p).min(t);
+            (if new_p == 0 { 1 } else { 0 }) + f(new_p, new_t, dir, memo)
+        };
+
+        memo.insert((p, t, dir), result);
+        result
+    }
+
+    for line in input.lines() {
+        let direction = line.chars().next().unwrap();
+        let amount = line[1..].parse::<i32>().unwrap();
+
+        ans += f(current, amount, direction, &mut memo);
+
+        if direction == 'L' {
+            current = (current - amount).rem_euclid(100);
+        } else {
+            current = (current + amount).rem_euclid(100);
+        }
+    }
+    ans
 }
 
 /// Main entry point for the program
 fn main() -> Result<()> {
-    // Initialize logging with better error handling
-    SimpleLogger::new()
-        .with_level(LevelFilter::Info)
-        .init()
-        .context("Logging initialization failed")?;
-
     // Read input with early validation
     let input = read_input()?;
 
-    // Performance testing with more descriptive names
-    info!("\nRunning Part 1:");
-    test_algorithm(
-        "Part 1",
-        15,
-        || {
-            part1(&input);
-        }, // Directly return u32 without converting to f64
-        1_000,
-        || part1(&input), // Changed to u32 instead of f64
-        10_000,
-        || part1(&input), // Changed to u32 instead of f64
-        BigOAlgorithmComplexity::ON,
-        BigOAlgorithmComplexity::ON,
-    );
-    println!("Part 1: {}\n", part1(&input));
-
-    info!("\nRunning Part 2:");
-    test_algorithm(
-        "Part 2",
-        15,
-        || {
-            part2(&input);
-        }, // Directly return u32 without converting to f64
-        1_000,
-        || part2(&input), // Changed to u32 instead of f64
-        10_000,
-        || part2(&input), // Changed to u32 instead of f64
-        BigOAlgorithmComplexity::ON,
-        BigOAlgorithmComplexity::ON,
-    );
-    println!("Part 2: {}\n", part2(&input));
+    // Run and print solutions
+    println!("Part 1: {}", part1(&input));
+    println!("Part 2: {}", part2(&input));
 
     Ok(())
 }

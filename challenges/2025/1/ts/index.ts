@@ -7,9 +7,7 @@
 
 import { type Algorithm, measurePerformance } from '@/test/typescript/runtime';
 import { getInput } from '@/utils/get-input';
-import { transpose } from '@/utils/typescript';
-import { DefaultMap } from '@/utils/typescript';
-import { sum } from '@/utils/typescript';
+import * as path from 'path';
 
 /**
  * Extracts the year from the current working directory path
@@ -24,8 +22,19 @@ import { sum } from '@/utils/typescript';
 const part1: Algorithm = {
   name: 'Part1',
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    let current: number = 50;
+    let zeroes: number = 0;
+    for (const line of input.split('\n')) {
+      const direction: string = line[0];
+      const amount: number = Number(line.slice(1));
+      if (direction === 'L') {
+        current = ((current - amount) % 100 + 100) % 100;
+      } else {
+        current = (current + amount) % 100;
+      }
+      zeroes += (current === 0 ? 1 : 0);
+    }
+    return zeroes;
   },
 };
 
@@ -37,8 +46,47 @@ const part1: Algorithm = {
 const part2: Algorithm = {
   name: 'Part2',
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    let current: number = 50;
+    let ans: number = 0;
+
+    const memo = new Map<string, number>();
+
+    const f = (p: number, t: number, dir: string): number => {
+      if (t === 0) return 0;
+      
+      const key = `${p},${t},${dir}`;
+      if (memo.has(key)) return memo.get(key)!;
+      
+      let result: number;
+      if (p === 0) {
+        result = Math.floor(Math.abs(t) / 100);
+      } else if (dir === 'L') {
+        const newP = ((Math.max(p - t, 0)) % 100 + 100) % 100;
+        const newT = t - Math.min(p, t);
+        result = (newP === 0 ? 1 : 0) + f(newP, newT, dir);
+      } else {
+        const newP = ((p + Math.min(100 - p, t)) % 100 + 100) % 100;
+        const newT = t - Math.min(100 - p, t);
+        result = (newP === 0 ? 1 : 0) + f(newP, newT, dir);
+      }
+      
+      memo.set(key, result);
+      return result;
+    };
+
+    for (const line of input.split('\n')) {
+      const direction: string = line[0];
+      const amount: number = Number(line.slice(1));
+      
+      ans += f(current, amount, direction);
+      
+      if (direction === 'L') {
+        current = ((current - amount) % 100 + 100) % 100;
+      } else {
+        current = (current + amount) % 100;
+      }
+    }
+    return ans;
   },
 };
 
@@ -55,8 +103,8 @@ function parse(input: string) {
  */
 const main = async () => {
   try {
-    const d = `${__dirname.split('\\').slice(0, -1).join('\\')}\\input.txt`;
-    const input = await getInput(d);
+    const inputPath = path.join(__dirname, '..', 'input.txt');
+    const input = await getInput(inputPath);
 
     // Run part1 and part2 algorithms with the input
     const result1 = part1.fn(0, 0, input);
