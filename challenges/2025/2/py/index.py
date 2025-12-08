@@ -15,7 +15,7 @@ It is designed to be executed within a specific challenge directory (e.g., `chal
 import os
 import sys
 import logging
-from typing import Optional, Callable
+from typing import Optional, Callable, Set
 from functools import lru_cache
 import time
 
@@ -173,8 +173,28 @@ def part1(aoc_input: str) -> str:
     Raises:
         NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    if not aoc_input:
+        raise ValueError("Input string cannot be empty")
+    def isInvalidId(id: int) -> bool:
+        S = str(id)
+        N = len(S)
+        if (N % 2 != 0): return False
+        
+        halfLength = N // 2
+        return S[:halfLength] == S[halfLength:]
+    invalidIds: Set[int] = set()
+    
+    for line in aoc_input.splitlines():
+        for ranges in line.split(","):
+            (startStr, endStr) = ranges.split("-")
+            start = int(startStr)
+            end = int(endStr)
+            
+            for i in range(start, end + 1):
+                if isInvalidId(i):
+                    invalidIds.add(i)
+
+    return sum(invalidIds)
 
 
 def part2(aoc_input: str) -> str:
@@ -191,8 +211,31 @@ def part2(aoc_input: str) -> str:
     Raises:
         NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    if not aoc_input:
+        raise ValueError("Input string cannot be empty")
+    def isInvalidId(id: int) -> bool:
+        S = str(id)
+        N = len(S)
+
+        for i in range(1, (N // 2) + 1):
+            if (N % i == 0):
+                pattern = S[:i]
+                if ((pattern * (N // i )) == S):
+                    return True
+        return False
+    invalidIds: Set[int] = set()
+    
+    for line in aoc_input.splitlines():
+        for ranges in line.split(","):
+            (startStr, endStr) = ranges.split("-")
+            start = int(startStr)
+            end = int(endStr)
+            
+            for i in range(start, end + 1):
+                if isInvalidId(i):
+                    invalidIds.add(i)
+
+    return sum(invalidIds)
 
 
 async def test_solutions():

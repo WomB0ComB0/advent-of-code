@@ -24,8 +24,37 @@ const part1: Algorithm = {
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    if (!input) {
+      return 0;
+    }
+
+    const isInvalidId = (id: number): boolean => {
+      const s = String(id);
+      if (s.length % 2 !== 0) {
+        return false;
+      }
+      const halfLength = s.length / 2;
+      const res = s.substring(0, halfLength) === s.substring(halfLength);
+      return res;
+    };
+
+    const invalidIds = new Set<number>();
+    const lines = input.split('\n').filter(Boolean);
+    for (const line of lines) {
+      const rangeStrings = line.split(',');
+      for (const rangeStr of rangeStrings) {
+        const [startStr, endStr] = rangeStr.split('-');
+        const start = Number(startStr);
+        const end = Number(endStr);
+
+        for (let i = start; i <= end; i++) {
+          if (isInvalidId(i)) {
+            invalidIds.add(i);
+          }
+        }
+      }
+    }
+    return Array.from(invalidIds.values()).reduce((acc, val) => acc + val, 0);
   },
 };
 
@@ -44,8 +73,45 @@ const part2: Algorithm = {
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    if (!input) {
+      return 0;
+    }
+
+    const isInvalidId = (id: number): boolean => {
+      const s = String(id);
+      const n = s.length;
+
+      // An ID is invalid if it is made only of some sequence of digits repeated at least twice.
+      // E.g., 12341234 (1234 two times), 123123123 (123 three times), 1212121212 (12 five times),
+      // and 1111111 (1 seven times) are all invalid IDs.
+      for (let len = 1; len <= n / 2; len++) {
+        if (n % len === 0) { // Check if 's' can be formed by repeating a substring of length 'len'
+          const pattern = s.substring(0, len);
+          if (pattern.repeat(n / len) === s) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    const invalidIds = new Set<number>();
+    const lines = input.split('\n').filter(Boolean);
+    for (const line of lines) {
+      const rangeStrings = line.split(',');
+      for (const rangeStr of rangeStrings) {
+        const [startStr, endStr] = rangeStr.split('-');
+        const start = Number(startStr);
+        const end = Number(endStr);
+
+        for (let i = start; i <= end; i++) {
+          if (isInvalidId(i)) {
+            invalidIds.add(i);
+          }
+        }
+      }
+    }
+    return Array.from(invalidIds.values()).reduce((acc, val) => acc + val, 0);
   },
 };
 

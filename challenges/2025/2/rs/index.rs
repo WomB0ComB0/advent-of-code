@@ -7,8 +7,9 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
+use std::collections::HashSet;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -71,9 +72,30 @@ fn read_input() -> Result<String> {
 ///
 /// # TODO
 /// Implement the actual logic for Part 1 of the puzzle.
-fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+fn part1(input: &str) -> u64 {
+    fn is_invalid_id(id: u64) -> bool {
+        let s = id.to_string();
+        let n = s.len();
+        if n % 2 != 0 {
+            return false;
+        }
+
+        let half_length = n / 2;
+        return &s[..half_length] == &s[half_length..];
+    }
+    let mut invalid_ids: HashSet<u64> = HashSet::new();
+    for line in input.lines() {
+        for c in line.split(',') {
+            let parts: Vec<u64> = c.split('-').map(|s| s.parse::<u64>().unwrap()).collect();
+            let [start, end]: [u64; 2] = parts.try_into().unwrap();
+            for i in start..=end {
+                if is_invalid_id(i) {
+                    invalid_ids.insert(i);
+                }
+            }
+        }
+    }
+    return invalid_ids.iter().sum();
 }
 
 /// Solves part 2 of the puzzle.
@@ -89,9 +111,39 @@ fn part1(input: &str) -> u32 {
 ///
 /// # TODO
 /// Implement the actual logic for Part 2 of the puzzle.
-fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+fn part2(input: &str) -> u64 {
+    fn is_invalid_id(id: u64) -> bool {
+        let s = id.to_string();
+        let n = s.len();
+
+        // An ID is invalid if it is made only of some sequence of digits repeated at least twice.
+        // E.g., 12341234 (1234 two times), 123123123 (123 three times), 1212121212 (12 five times),
+        // and 1111111 (1 seven times) are all invalid IDs.
+        for len in 1..=n / 2 {
+            if n % len == 0 {
+                let pattern = &s[..len];
+                let repeated = pattern.repeat(n / len);
+                if repeated == s {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    let mut invalid_ids: HashSet<u64> = HashSet::new();
+    for line in input.lines() {
+        for c in line.split(',') {
+            let parts: Vec<u64> = c.split('-').map(|s| s.parse::<u64>().unwrap()).collect();
+            let [start, end]: [u64; 2] = parts.try_into().unwrap();
+            for i in start..=end {
+                if is_invalid_id(i) {
+                    invalid_ids.insert(i);
+                }
+            }
+        }
+    }
+    return invalid_ids.iter().sum();
 }
 
 /// Main entry point for the program.
