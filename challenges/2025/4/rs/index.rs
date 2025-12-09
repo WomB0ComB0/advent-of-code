@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -58,40 +58,108 @@ fn read_input() -> Result<String> {
         .with_context(|| format!("Failed to read input from {:?}", input_path))
 }
 
+/// Helper function to get neighboring positions containing '@'.
+///
+/// # Arguments
+/// * `y` - The y-coordinate of the current cell.
+/// * `x` - The x-coordinate of the current cell.
+/// * `grid` - A reference to the 2D grid of characters.
+///
+/// # Returns
+/// A vector of (y, x) tuples for neighbors containing '@'.
+fn nbh_rolls(y: usize, x: usize, grid: &Vec<Vec<char>>) -> Vec<(usize, usize)> {
+    let mut rolls = Vec::new();
+    let rows = grid.len();
+    let cols = grid[0].len();
+
+    for dy in -1..=1 {
+        for dx in -1..=1 {
+            if dy == 0 && dx == 0 {
+                continue;
+            }
+
+            let y2 = y as i32 + dy;
+            let x2 = x as i32 + dx;
+
+            if y2 >= 0 && y2 < rows as i32 && x2 >= 0 && x2 < cols as i32 {
+                let y2 = y2 as usize;
+                let x2 = x2 as usize;
+                if grid[y2][x2] == '@' {
+                    rolls.push((y2, x2));
+                }
+            }
+        }
+    }
+
+    rolls
+}
+
 /// Solves part 1 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 1.
+/// Counts cells with '@' that have fewer than 4 neighbors containing '@'.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
 /// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
 fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+    let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+
+    let mut total = 0;
+
+    for y in 0..grid.len() {
+        for x in 0..grid[0].len() {
+            if grid[y][x] == '@' {
+                if nbh_rolls(y, x, &grid).len() < 4 {
+                    total += 1;
+                }
+            }
+        }
+    }
+
+    total
 }
 
 /// Solves part 2 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 2.
+/// Iteratively removes cells with '@' that have fewer than 4 neighbors.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
 /// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
 fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+    let mut grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+
+    let mut total = 0;
+    let mut todo: Vec<(usize, usize)> = Vec::new();
+
+    // Find all initial '@' positions
+    for y in 0..grid.len() {
+        for x in 0..grid[0].len() {
+            if grid[y][x] == '@' {
+                todo.push((y, x));
+            }
+        }
+    }
+
+    // Process cells iteratively
+    while let Some((y, x)) = todo.pop() {
+        if grid[y][x] == '.' {
+            continue;
+        }
+
+        let nbh = nbh_rolls(y, x, &grid);
+        if nbh.len() < 4 {
+            grid[y][x] = '.';
+            todo.extend(nbh);
+            total += 1;
+        }
+    }
+
+    total
 }
 
 /// Main entry point for the program.

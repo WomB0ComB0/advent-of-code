@@ -18,14 +18,31 @@ const part1: Algorithm = {
   name: 'Part1',
   /**
    * The function implementing the solution for Part 1.
+   * Tracks active positions and counts encounters with '^'.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const grid = input?.trim().split('\n').map(line => line.trimEnd()) ?? [];
+    
+    let total = 0;
+    const active: boolean[] = new Array(grid[0].length).fill(false);
+    active[grid[0].indexOf('S')] = true;
+    
+    for (let y = 1; y < grid.length; y++) {
+      for (let x = 0; x < grid[y].length; x++) {
+        if (grid[y][x] === '^' && active[x]) {
+          total++;
+          active[x - 1] = true;
+          active[x + 1] = true;
+          active[x] = false;
+        }
+      }
+    }
+    
+    return total;
   },
 };
 
@@ -38,14 +55,54 @@ const part2: Algorithm = {
   name: 'Part2',
   /**
    * The function implementing the solution for Part 2.
+   * Builds a DAG and uses memoized DP to count all paths.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    const grid = input?.trim().split('\n').map(line => line.trimEnd()) ?? [];
+    
+    const edges: Map<number, number[]> = new Map();
+    const active: number[][] = Array.from({ length: grid[0].length }, () => []);
+    active[grid[0].indexOf('S')].push(1);
+    let v = 2;
+    
+    for (let y = 1; y < grid.length; y++) {
+      for (let x = 0; x < grid[y].length; x++) {
+        if (grid[y][x] === '^' && active[x].length > 0) {
+          for (const u of active[x]) {
+            if (!edges.has(u)) edges.set(u, []);
+            edges.get(u)!.push(v);
+          }
+          active[x] = [];
+          if (x - 1 >= 0) active[x - 1].push(v);
+          if (x + 1 < grid[0].length) active[x + 1].push(v);
+          v++;
+        }
+      }
+    }
+    
+    for (let x = 0; x < active.length; x++) {
+      for (const u of active[x]) {
+        if (!edges.has(u)) edges.set(u, []);
+        edges.get(u)!.push(0);
+      }
+    }
+    
+    const memo = new Map<number, number>();
+    const dp = (u: number): number => {
+      if (u === 0) return 1;
+      if (memo.has(u)) return memo.get(u)!;
+      
+      const neighbors = edges.get(u) ?? [];
+      const result = neighbors.reduce((sum, neighbor) => sum + dp(neighbor), 0);
+      memo.set(u, result);
+      return result;
+    };
+    
+    return dp(1);
   },
 };
 

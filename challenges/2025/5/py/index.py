@@ -162,37 +162,72 @@ def solve_challenge(
 def part1(aoc_input: str) -> str:
     """
     Solves part 1 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 1.
+    Counts how many IDs fall within at least one range.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 1 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    from collections import defaultdict
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    ranges = [list(map(int, line.split("-"))) for line in lines if "-" in line]
+    ids = {int(line) for line in lines if "-" not in line and line != ""}
+
+    deltas = defaultdict(int)
+    for start, end in ranges:
+        deltas[start] += 1
+        deltas[end + 1] -= 1
+    for id_val in ids:
+        deltas[id_val] += 0
+
+    fresh = 0
+    cur = 0
+    for id_val in sorted(deltas):
+        cur += deltas[id_val]
+        fresh += id_val in ids and cur > 0
+    
+    return str(fresh)
 
 
 def part2(aoc_input: str) -> str:
     """
     Solves part 2 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 2.
+    Counts the total length of all ranges.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 2 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    from collections import defaultdict
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    ranges = [list(map(int, line.split("-"))) for line in lines if "-" in line]
+    ids = {int(line) for line in lines if "-" not in line and line != ""}
+
+    deltas = defaultdict(int)
+    for start, end in ranges:
+        deltas[start] += 1
+        deltas[end + 1] -= 1
+    for id_val in ids:
+        deltas[id_val] += 0
+
+    total = 0
+    cur = 0
+    start = 0
+    for id_val in sorted(deltas):
+        last = cur
+        cur += deltas[id_val]
+        if last == 0 and cur > 0:
+            start = id_val
+        elif last > 0 and cur == 0:
+            total += id_val - start
+    
+    return str(total)
 
 
 async def test_solutions():

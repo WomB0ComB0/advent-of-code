@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -60,38 +60,122 @@ fn read_input() -> Result<String> {
 
 /// Solves part 1 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 1.
+/// Transposes lines into columns and applies operations based on the last character.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
-fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+/// The solution for Part 1 as a `u64`.
+fn part1(input: &str) -> u64 {
+    let lines: Vec<&str> = input.lines().collect();
+
+    // Split each line into tokens
+    let split_lines: Vec<Vec<&str>> = lines
+        .iter()
+        .map(|line| line.split_whitespace().collect())
+        .collect();
+
+    // Find max columns
+    let max_cols = split_lines.iter().map(|row| row.len()).max().unwrap_or(0);
+
+    // Transpose to get columns
+    let mut total: u64 = 0;
+
+    for col in 0..max_cols {
+        let mut column: Vec<&str> = Vec::new();
+        for row in &split_lines {
+            if col < row.len() {
+                column.push(row[col]);
+            }
+        }
+
+        if column.is_empty() {
+            continue;
+        }
+
+        // Last element determines operation
+        let last = column[column.len() - 1];
+        let is_multiply = last == "*";
+
+        // Convert numbers (all except last)
+        let numbers: Vec<u64> = column[..column.len() - 1]
+            .iter()
+            .filter_map(|s| s.parse::<u64>().ok())
+            .collect();
+
+        if !numbers.is_empty() {
+            let result: u64 = if is_multiply {
+                numbers.iter().cloned().product()
+            } else {
+                numbers.iter().cloned().sum()
+            };
+            total += result;
+        }
+    }
+
+    total
 }
 
 /// Solves part 2 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 2.
+/// Parses multi-digit numbers from columns and applies operations.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
-fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+/// The solution for Part 2 as a `u64`.
+fn part2(input: &str) -> u64 {
+    let lines: Vec<String> = input.lines().map(|s| s.to_string()).collect();
+
+    let process = |left: usize, right: usize| -> u64 {
+        let last_line = &lines[lines.len() - 1];
+        let is_multiply = left < last_line.len() && last_line.chars().nth(left) == Some('*');
+
+        let mut nums: Vec<u64> = Vec::new();
+
+        for x in left..=right {
+            let mut num: u64 = 0;
+            for y in 0..lines.len() - 1 {
+                if x < lines[y].len() {
+                    let ch = lines[y].chars().nth(x).unwrap_or(' ');
+                    if ch != ' ' {
+                        if let Some(digit) = ch.to_digit(10) {
+                            num = num * 10 + digit as u64;
+                        }
+                    }
+                }
+            }
+            nums.push(num);
+        }
+
+        if nums.is_empty() {
+            return 0;
+        }
+
+        if is_multiply {
+            nums.iter().product()
+        } else {
+            nums.iter().sum()
+        }
+    };
+
+    let n = lines.iter().map(|line| line.len()).max().unwrap_or(0);
+    let mut total: u64 = 0;
+    let mut left: usize = 0;
+
+    for right in 1..n {
+        let last_line = &lines[lines.len() - 1];
+        if right < last_line.len() && last_line.chars().nth(right) != Some(' ') {
+            if right >= 2 {
+                total += process(left, right - 2);
+            }
+            left = right;
+        }
+    }
+
+    total + process(left, n - 1)
 }
 
 /// Main entry point for the program.

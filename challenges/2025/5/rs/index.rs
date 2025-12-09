@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -60,38 +60,149 @@ fn read_input() -> Result<String> {
 
 /// Solves part 1 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 1.
+/// Counts how many IDs fall within at least one range.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
 /// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
 fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+    use std::collections::{BTreeMap, HashSet};
+
+    let lines: Vec<&str> = input.lines().collect();
+
+    // Parse ranges and IDs
+    let mut ranges: Vec<(i32, i32)> = Vec::new();
+    let mut ids: HashSet<i32> = HashSet::new();
+
+    for line in lines {
+        let line = line.trim();
+        if line.contains('-') && !line.is_empty() {
+            // Find the last dash to handle negative numbers
+            // For "1-5", we want to split into ["1", "5"]
+            // For "-5-10", we want to split into ["-5", "10"]
+            if let Some(dash_pos) = line.rfind('-') {
+                // Skip if it's just a negative number at the start
+                if dash_pos > 0 {
+                    let start_str = &line[..dash_pos];
+                    let end_str = &line[dash_pos + 1..];
+                    if let (Ok(start), Ok(end)) = (start_str.parse::<i32>(), end_str.parse::<i32>())
+                    {
+                        ranges.push((start, end));
+                        continue;
+                    }
+                }
+            }
+            // If parsing as range failed, try as a single ID
+            if let Ok(id) = line.parse::<i32>() {
+                ids.insert(id);
+            }
+        } else if !line.is_empty() {
+            if let Ok(id) = line.parse::<i32>() {
+                ids.insert(id);
+            }
+        }
+    }
+
+    // Build deltas map
+    let mut deltas: BTreeMap<i32, i32> = BTreeMap::new();
+    for (start, end) in ranges {
+        *deltas.entry(start).or_insert(0) += 1;
+        *deltas.entry(end + 1).or_insert(0) -= 1;
+    }
+    for &id in &ids {
+        deltas.entry(id).or_insert(0);
+    }
+
+    // Sweep through sorted keys
+    let mut fresh = 0;
+    let mut cur = 0;
+
+    for (&id, &delta) in &deltas {
+        cur += delta;
+        if ids.contains(&id) && cur > 0 {
+            fresh += 1;
+        }
+    }
+
+    fresh
 }
 
 /// Solves part 2 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 2.
+/// Counts the total length of all ranges.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
 /// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
 fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+    use std::collections::{BTreeMap, HashSet};
+
+    let lines: Vec<&str> = input.lines().collect();
+
+    // Parse ranges and IDs
+    let mut ranges: Vec<(i32, i32)> = Vec::new();
+    let mut ids: HashSet<i32> = HashSet::new();
+
+    for line in lines {
+        let line = line.trim();
+        if line.contains('-') && !line.is_empty() {
+            // Find the last dash to handle negative numbers
+            // For "1-5", we want to split into ["1", "5"]
+            // For "-5-10", we want to split into ["-5", "10"]
+            if let Some(dash_pos) = line.rfind('-') {
+                // Skip if it's just a negative number at the start
+                if dash_pos > 0 {
+                    let start_str = &line[..dash_pos];
+                    let end_str = &line[dash_pos + 1..];
+                    if let (Ok(start), Ok(end)) = (start_str.parse::<i32>(), end_str.parse::<i32>())
+                    {
+                        ranges.push((start, end));
+                        continue;
+                    }
+                }
+            }
+            // If parsing as range failed, try as a single ID
+            if let Ok(id) = line.parse::<i32>() {
+                ids.insert(id);
+            }
+        } else if !line.is_empty() {
+            if let Ok(id) = line.parse::<i32>() {
+                ids.insert(id);
+            }
+        }
+    }
+
+    // Build deltas map
+    let mut deltas: BTreeMap<i32, i32> = BTreeMap::new();
+    for (start, end) in ranges {
+        *deltas.entry(start).or_insert(0) += 1;
+        *deltas.entry(end + 1).or_insert(0) -= 1;
+    }
+    for &id in &ids {
+        deltas.entry(id).or_insert(0);
+    }
+
+    // Sweep through sorted keys
+    let mut total = 0;
+    let mut cur = 0;
+    let mut start = 0;
+
+    for (&id, &delta) in &deltas {
+        let last = cur;
+        cur += delta;
+
+        if last == 0 && cur > 0 {
+            start = id;
+        } else if last > 0 && cur == 0 {
+            total += (id - start) as u32;
+        }
+    }
+
+    total
 }
 
 /// Main entry point for the program.

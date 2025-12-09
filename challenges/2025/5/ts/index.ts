@@ -18,14 +18,53 @@ const part1: Algorithm = {
   name: 'Part1',
   /**
    * The function implementing the solution for Part 1.
+   * Counts how many IDs fall within at least one range.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const lines = input?.trim().split('\n').map(line => line.trim()) ?? [];
+    
+    // Parse ranges and IDs
+    const ranges: [number, number][] = [];
+    const ids = new Set<number>();
+    
+    for (const line of lines) {
+      if (line.includes('-')) {
+        const [start, end] = line.split('-').map(Number);
+        ranges.push([start, end]);
+      } else if (line !== '') {
+        ids.add(Number(line));
+      }
+    }
+    
+    // Build deltas map
+    const deltas = new Map<number, number>();
+    for (const [start, end] of ranges) {
+      deltas.set(start, (deltas.get(start) || 0) + 1);
+      deltas.set(end + 1, (deltas.get(end + 1) || 0) - 1);
+    }
+    for (const id of ids) {
+      if (!deltas.has(id)) {
+        deltas.set(id, 0);
+      }
+    }
+    
+    // Sort keys and sweep
+    const sortedKeys = Array.from(deltas.keys()).sort((a, b) => a - b);
+    let fresh = 0;
+    let cur = 0;
+    
+    for (const id of sortedKeys) {
+      cur += deltas.get(id) || 0;
+      if (ids.has(id) && cur > 0) {
+        fresh++;
+      }
+    }
+    
+    return fresh;
   },
 };
 
@@ -38,14 +77,58 @@ const part2: Algorithm = {
   name: 'Part2',
   /**
    * The function implementing the solution for Part 2.
+   * Counts the total length of all ranges.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    const lines = input?.trim().split('\n').map(line => line.trim()) ?? [];
+    
+    // Parse ranges and IDs
+    const ranges: [number, number][] = [];
+    const ids = new Set<number>();
+    
+    for (const line of lines) {
+      if (line.includes('-')) {
+        const [start, end] = line.split('-').map(Number);
+        ranges.push([start, end]);
+      } else if (line !== '') {
+        ids.add(Number(line));
+      }
+    }
+    
+    // Build deltas map
+    const deltas = new Map<number, number>();
+    for (const [start, end] of ranges) {
+      deltas.set(start, (deltas.get(start) || 0) + 1);
+      deltas.set(end + 1, (deltas.get(end + 1) || 0) - 1);
+    }
+    for (const id of ids) {
+      if (!deltas.has(id)) {
+        deltas.set(id, 0);
+      }
+    }
+    
+    // Sort keys and sweep
+    const sortedKeys = Array.from(deltas.keys()).sort((a, b) => a - b);
+    let total = 0;
+    let cur = 0;
+    let start = 0;
+    
+    for (const id of sortedKeys) {
+      const last = cur;
+      cur += deltas.get(id) || 0;
+      
+      if (last === 0 && cur > 0) {
+        start = id;
+      } else if (last > 0 && cur === 0) {
+        total += id - start;
+      }
+    }
+    
+    return total;
   },
 };
 

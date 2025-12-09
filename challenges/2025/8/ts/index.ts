@@ -10,6 +10,53 @@ import { getInput } from '@/utils/get-input';
 import * as path from 'node:path';
 
 /**
+ * Disjoint Set Union (Union-Find) data structure.
+ */
+class DSU {
+  private parent: number[];
+  private size: number[];
+
+  constructor(n: number) {
+    this.parent = Array.from({ length: n }, (_, i) => i);
+    this.size = Array(n).fill(1);
+  }
+
+  unite(u: number, v: number): void {
+    u = this.find(u);
+    v = this.find(v);
+    if (u === v) return;
+    
+    if (this.size[u] < this.size[v]) {
+      [u, v] = [v, u];
+    }
+    this.parent[v] = u;
+    this.size[u] += this.size[v];
+  }
+
+  find(u: number): number {
+    while (u !== this.parent[u]) {
+      this.parent[u] = this.parent[this.parent[u]];
+      u = this.parent[u];
+    }
+    return u;
+  }
+
+  sizes(): number[] {
+    const sizes: number[] = [];
+    for (let u = 0; u < this.parent.length; u++) {
+      if (u === this.find(u)) {
+        sizes.push(this.size[u]);
+      }
+    }
+    return sizes;
+  }
+
+  isFullyConnected(): boolean {
+    return this.size[this.find(0)] === this.size.length;
+  }
+}
+
+/**
  * Solves part 1 of the puzzle.
  * This object defines an Algorithm for solving the first part of the Advent of Code challenge.
  * The `fn` property contains the actual solution logic.
@@ -18,14 +65,39 @@ const part1: Algorithm = {
   name: 'Part1',
   /**
    * The function implementing the solution for Part 1.
+   * Uses DSU to connect k shortest edges and find product of 3 largest components.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const lines = input?.trim().split('\n').map(l => l.trim()).filter(l => l) ?? [];
+    const coords = lines.map(line => line.split(',').map(Number));
+    
+    const k = 1000;
+    const dsu = new DSU(coords.length);
+    
+    const edges: [number, number, number][] = [];
+    for (let u = 0; u < coords.length; u++) {
+      for (let v = u + 1; v < coords.length; v++) {
+        const dx = coords[u][0] - coords[v][0];
+        const dy = coords[u][1] - coords[v][1];
+        const dz = coords[u][2] - coords[v][2];
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        edges.push([dist, u, v]);
+      }
+    }
+    
+    edges.sort((a, b) => a[0] - b[0]);
+    
+    for (let i = 0; i < Math.min(k, edges.length); i++) {
+      const [, u, v] = edges[i];
+      dsu.unite(u, v);
+    }
+    
+    const sizes = dsu.sizes().sort((a, b) => b - a);
+    return sizes[0] * sizes[1] * sizes[2];
   },
 };
 
@@ -38,26 +110,41 @@ const part2: Algorithm = {
   name: 'Part2',
   /**
    * The function implementing the solution for Part 2.
+   * Connects points until fully connected and returns product of x-coordinates.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
+    const lines = input?.trim().split('\n').map(l => l.trim()).filter(l => l) ?? [];
+    const coords = lines.map(line => line.split(',').map(Number));
+    
+    const dsu = new DSU(coords.length);
+    
+    const edges: [number, number, number][] = [];
+    for (let u = 0; u < coords.length; u++) {
+      for (let v = u + 1; v < coords.length; v++) {
+        const dx = coords[u][0] - coords[v][0];
+        const dy = coords[u][1] - coords[v][1];
+        const dz = coords[u][2] - coords[v][2];
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        edges.push([dist, u, v]);
+      }
+    }
+    
+    edges.sort((a, b) => a[0] - b[0]);
+    
+    for (const [, u, v] of edges) {
+      dsu.unite(u, v);
+      if (dsu.isFullyConnected()) {
+        return coords[u][0] * coords[v][0];
+      }
+    }
+    
     return 0;
   },
 };
-
-/**
- * Parses the raw input string into a usable format.
- * This specific parser splits the input by whitespace and converts each segment to a number.
- * @param input - The raw puzzle input string.
- * @returns An array of numbers parsed from the input.
- */
-function parse(input: string) {
-  return input.split(/\s+/).map(Number);
-}
 
 /**
  * Main execution function that:

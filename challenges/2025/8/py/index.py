@@ -159,40 +159,108 @@ def solve_challenge(
         return None
 
 
+class DSU:
+    """Disjoint Set Union (Union-Find) data structure."""
+    
+    def __init__(self, n: int):
+        self._parent = list(range(n))
+        self._size = [1] * n
+
+    def unite(self, u: int, v: int):
+        """Unite two sets containing u and v."""
+        u, v = self.find(u), self.find(v)
+        if u == v:
+            return
+        if self._size[u] < self._size[v]:
+            u, v = v, u
+        self._parent[v] = u
+        self._size[u] += self._size[v]
+
+    def find(self, u: int) -> int:
+        """Find the root of the set containing u with path compression."""
+        while u != self._parent[u]:
+            self._parent[u] = self._parent[self._parent[u]]
+            u = self._parent[u]
+        return u
+
+    def sizes(self) -> list[int]:
+        """Return sizes of all connected components."""
+        sizes = []
+        for u in range(len(self._parent)):
+            if u == self.find(u):
+                sizes.append(self._size[u])
+        return sizes
+
+    def is_fully_connected(self) -> bool:
+        """Check if all nodes are in the same component."""
+        return self._size[self.find(0)] == len(self._size)
+
+
 def part1(aoc_input: str) -> str:
     """
     Solves part 1 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 1.
+    Uses DSU to connect k shortest edges and find product of 3 largest components.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 1 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    from math import dist, prod
+    from heapq import nlargest
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    coords = [tuple(map(int, line.split(","))) for line in lines]
+    
+    k = 1000
+    dsu = DSU(len(coords))
+    
+    edges = []
+    for u in range(len(coords)):
+        for v in range(u + 1, len(coords)):
+            edges.append((dist(coords[u], coords[v]), u, v))
+    
+    edges.sort()
+    
+    for i in range(min(k, len(edges))):
+        _, u, v = edges[i]
+        dsu.unite(u, v)
+    
+    return str(prod(nlargest(3, dsu.sizes())))
 
 
 def part2(aoc_input: str) -> str:
     """
     Solves part 2 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 2.
+    Connects points until fully connected and returns product of x-coordinates.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 2 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    from math import dist
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    coords = [tuple(map(int, line.split(","))) for line in lines]
+    
+    dsu = DSU(len(coords))
+    
+    edges = []
+    for u in range(len(coords)):
+        for v in range(u + 1, len(coords)):
+            edges.append((dist(coords[u], coords[v]), u, v))
+    
+    edges.sort()
+    
+    for _, u, v in edges:
+        dsu.unite(u, v)
+        if dsu.is_fully_connected():
+            return str(coords[u][0] * coords[v][0])
+    
+    return str(0)
 
 
 async def test_solutions():

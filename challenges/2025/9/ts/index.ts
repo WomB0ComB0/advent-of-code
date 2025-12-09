@@ -9,96 +9,157 @@ import { type Algorithm, measurePerformance } from '@/test/typescript/runtime';
 import { getInput } from '@/utils/get-input';
 import * as path from 'node:path';
 
+type Point = [number, number];
+
+function getArea(p1: Point, p2: Point): number {
+  const [x1, y1] = p1;
+  const [x2, y2] = p2;
+  return (Math.abs(x1 - x2) + 1) * (Math.abs(y1 - y2) + 1);
+}
+
+function* combinations(n: number, r: number): Generator<number[]> {
+  const indices = Array.from({ length: r }, (_, i) => i);
+  yield [...indices];
+  
+  while (true) {
+    let i = r - 1;
+    while (i >= 0 && indices[i] === i + n - r) {
+      i--;
+    }
+    if (i < 0) return;
+    indices[i]++;
+    for (let j = i + 1; j < r; j++) {
+      indices[j] = indices[j - 1] + 1;
+    }
+    yield [...indices];
+  }
+}
+
 /**
  * Solves part 1 of the puzzle.
- * This object defines an Algorithm for solving the first part of the Advent of Code challenge.
- * The `fn` property contains the actual solution logic.
  */
 const part1: Algorithm = {
   name: 'Part1',
-  /**
-   * The function implementing the solution for Part 1.
-   * @param size - The input size for performance measurement (not directly used in solution logic here).
-   * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
-   * @param input - Raw puzzle input as a string.
-   * @returns The solution for part 1 as a number.
-   */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const lines = input?.trim().split('\n') ?? [];
+    const data: Point[] = lines.map(line => {
+      const [x, y] = line.split(',').map(Number);
+      return [x, y];
+    });
+    
+    const n = data.length;
+    let maxArea = 0;
+    
+    for (const [i, j] of combinations(n,  2)) {
+      const area = getArea(data[i], data[j]);
+      maxArea = Math.max(maxArea, area);
+    }
+    
+    return maxArea;
   },
 };
 
 /**
  * Solves part 2 of the puzzle.
- * This object defines an Algorithm for solving the second part of the Advent of Code challenge.
- * The `fn` property contains the actual solution logic.
  */
 const part2: Algorithm = {
   name: 'Part2',
-  /**
-   * The function implementing the solution for Part 2.
-   * @param size - The input size for performance measurement (not directly used in solution logic here).
-   * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
-   * @param input - Raw puzzle input as a string.
-   * @returns The solution for part 2 as a number.
-   */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    const lines = input?.trim().split('\n') ?? [];
+    const data: Point[] = lines.map(line => {
+      const [x, y] = line.split(',').map(Number);
+      return [x, y];
+    });
+    
+    const n = data.length;
+    const hori: [number, number, number, number][] = [];
+    const vert: [number, number, number, number][] = [];
+    
+    for (let i = 0; i < n; i++) {
+      const [x, y] = data[i];
+      const [x2, y2] = data[(i + 1) % n];
+      const x_min = Math.min(x, x2);
+      const x_max = Math.max(x, x2);
+      const y_min = Math.min(y, y2);
+      const y_max = Math.max(y, y2);
+      
+      if (x_min === x_max) {
+        vert.push([x_min, x_max, y_min, y_max]);
+      } else {
+        hori.push([x_min, x_max, y_min, y_max]);
+      }
+    }
+    
+    function inside(x1: number, y1: number, x2: number, y2: number): boolean {
+      for (const [a, b, y] of hori) {
+        if ((a < x1 && x1 < b || a < x2 && x2 < b) && y1 < y && y < y2) {
+          return false;
+        }
+        if ((x1 === a || x2 === b) && y1 < y && y < y2) {
+          return false;
+        }
+      }
+      
+      for (const [x, _, c, d] of vert) {
+        if ((c < y1 && y1 < d || c < y2 && y2 < d) && x1 < x && x < x2) {
+          return false;
+        }
+        if ((y1 === c || y2 === d) && x1 < x && x < x2) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    let ans = 0;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const p1 = data[i];
+        const p2 = data[j];
+        const x1 = Math.min(p1[0], p2[0]);
+        const x2 = Math.max(p1[0], p2[0]);
+        const y1 = Math.min(p1[1], p2[1]);
+        const y2 = Math.max(p1[1], p2[1]);
+        
+        if (!inside(x1, y1, x2, y2)) {
+          continue;
+        }
+        
+        ans = Math.max(ans, getArea(p1, p2));
+      }
+    }
+    
+    return ans;
   },
 };
 
 /**
- * Parses the raw input string into a usable format.
- * This specific parser splits the input by whitespace and converts each segment to a number.
- * @param input - The raw puzzle input string.
- * @returns An array of numbers parsed from the input.
- */
-function parse(input: string) {
-  return input.split(/\s+/).map(Number);
-}
-
-/**
- * Main execution function that:
- * 1. Fetches input for the puzzle using year and day.
- * 2. Solves both parts of the puzzle with performance measurement.
- * 3. Outputs solutions and performance metrics to console.
- * @throws Will throw if input fetching fails or other critical errors occur.
+ * Main execution function.
  */
 const main = async () => {
   try {
-    // Constructs the path to the input file, assuming it's in the parent directory of the current script.
     const inputPath = path.join(__dirname, '..', 'input.txt');
     const input = await getInput(inputPath);
 
-    // Run part1 and part2 algorithms with the input
     const result1 = part1.fn(0, 0, input);
     const result2 = part2.fn(0, 0, input);
 
-    // Output the results
     console.log(`Result for Part 1: ${result1}`);
     console.log(`Result for Part 2: ${result2}`);
 
-    // Measure performance of both parts
     const performanceResults = await measurePerformance([
       {
         ...part1,
-        // Wrap the original function to pass the input correctly during performance measurement.
         fn: (size: number, callIndex: number) => part1.fn(size, callIndex, input),
       },
       {
         ...part2,
-        // Wrap the original function to pass the input correctly during performance measurement.
         fn: (size: number, callIndex: number) => part2.fn(size, callIndex, input),
       },
     ]);
 
-    // Output solutions and performance metrics
     console.log(`Solution 1: ${performanceResults['Part1'].duration} ms`);
     console.log(`Solution 2: ${performanceResults['Part2'].duration} ms`);
-
-    // Optional: Log complexity domains if estimated by the performance measurement tool
     console.log('Part 1 Complexity Domains:', performanceResults['Part1'].estimatedDomains);
     console.log('Part 2 Complexity Domains:', performanceResults['Part2'].estimatedDomains);
   } catch (error) {
@@ -107,11 +168,6 @@ const main = async () => {
   }
 };
 
-/**
- * Entry point for the script.
- * This block ensures that the `main` function is called only when the script is executed directly
- * (not when imported as a module). It also catches and logs any unhandled errors from `main`.
- */
 if (require.main === module) {
   main().catch(console.error);
 }

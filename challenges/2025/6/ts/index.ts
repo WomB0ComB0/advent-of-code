@@ -18,14 +18,47 @@ const part1: Algorithm = {
   name: 'Part1',
   /**
    * The function implementing the solution for Part 1.
+   * Transposes lines into columns and applies operations based on the last character.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const lines = input?.trim().split('\n').map(line => line.trimEnd()) ?? [];
+    
+    // Split each line into individual tokens/numbers
+    const splitLines = lines.map(line => line.split(/\s+/));
+    
+    // Transpose to get columns
+    const maxCols = Math.max(...splitLines.map(row => row.length));
+    const columns: string[][] = [];
+    
+    for (let col = 0; col < maxCols; col++) {
+      const column: string[] = [];
+      for (let row = 0; row < splitLines.length; row++) {
+        if (col < splitLines[row].length) {
+          column.push(splitLines[row][col]);
+        }
+      }
+      columns.push(column);
+    }
+    
+    // For each column, the last character determines the operation
+    let total = 0;
+    for (const col of columns) {
+      if (col.length === 0) continue;
+      
+      const lastChar = col[col.length - 1];
+      const isMultiply = lastChar === '*';
+      const numbers = col.slice(0, -1).map(Number);
+      
+      if (numbers.length > 0) {
+        total += numbers.reduce((acc, n) => isMultiply ? acc * n : acc + n);
+      }
+    }
+    
+    return total;
   },
 };
 
@@ -38,14 +71,49 @@ const part2: Algorithm = {
   name: 'Part2',
   /**
    * The function implementing the solution for Part 2.
+   * Parses multi-digit numbers from columns and applies operations.
    * @param size - The input size for performance measurement (not directly used in solution logic here).
    * @param callIndex - The index of the current call for performance measurement (not directly used in solution logic here).
    * @param input - Raw puzzle input as a string.
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    const lines = input?.trim().split('\n').map(line => line.trimEnd()) ?? [];
+    
+    const process = (left: number, right: number): number => {
+      const op = lines[lines.length - 1][left] === '*' ? 
+        ((a: number, b: number) => a * b) : 
+        ((a: number, b: number) => a + b);
+      
+      const nums: number[] = [];
+      for (let x = left; x <= right; x++) {
+        let num = 0;
+        for (let y = 0; y < lines.length - 1; y++) {
+          if (x < lines[y].length) {
+            const char = lines[y][x];
+            if (char !== ' ') {
+              num = num * 10 + parseInt(char, 10);
+            }
+          }
+        }
+        nums.push(num);
+      }
+      
+      return nums.reduce(op);
+    };
+    
+    const n = Math.max(...lines.map(line => line.length));
+    let total = 0;
+    let left = 0;
+    
+    for (let right = 1; right < n; right++) {
+      if (right < lines[lines.length - 1].length && lines[lines.length - 1][right] !== ' ') {
+        total += process(left, right - 2);
+        left = right;
+      }
+    }
+    
+    return total + process(left, n - 1);
   },
 };
 

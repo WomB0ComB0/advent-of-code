@@ -173,9 +173,21 @@ def part1(aoc_input: str) -> str:
     Raises:
         NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    def largest_two_digit_number(bank: str) -> int:
+        max_joltage: int = 0
+        for i in range(len(bank)):
+            for j in range(i + 1, len(bank)):
+                joltage_str: str = bank[i] + bank[j]
+                current_joltage: int = int(joltage_str)
+                if current_joltage > max_joltage:
+                    max_joltage = current_joltage
+        return max_joltage
 
+    total_output_joltage: int = 0
+    for bank in aoc_input.split("\n"):
+        if bank:  # Skip empty lines
+            total_output_joltage += largest_two_digit_number(bank)
+    return str(total_output_joltage)
 
 def part2(aoc_input: str) -> str:
     """
@@ -191,9 +203,40 @@ def part2(aoc_input: str) -> str:
     Raises:
         NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
-
+    NUM_DIGITS_TO_SELECT: int = 12
+    
+    def largest_number_from_bank(bank: str) -> int:
+        if len(bank) < NUM_DIGITS_TO_SELECT:
+            return 0
+        
+        stack: list[str] = []
+        digits_to_drop = len(bank) - NUM_DIGITS_TO_SELECT
+        
+        for char in bank:
+            # Remove smaller digits from stack while we have drops remaining
+            while (
+                digits_to_drop > 0 and 
+                stack and 
+                stack[-1] < char
+            ):
+                stack.pop()
+                digits_to_drop -= 1
+            stack.append(char)
+        
+        # Trim excess digits from the end
+        while len(stack) > NUM_DIGITS_TO_SELECT:
+            stack.pop()
+        
+        if len(stack) < NUM_DIGITS_TO_SELECT:
+            return 0
+        
+        return int("".join(stack))
+    
+    total_output_joltage: int = 0
+    for bank in aoc_input.split("\n"):
+        if bank:  # Skip empty lines
+            total_output_joltage += largest_number_from_bank(bank)
+    return str(total_output_joltage)
 
 async def test_solutions():
     """

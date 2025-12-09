@@ -7,6 +7,7 @@
 
 import { type Algorithm, measurePerformance } from '@/test/typescript/runtime';
 import { getInput } from '@/utils/get-input';
+import { quickSort } from "@/utils/typescript/dsa";
 import * as path from 'node:path';
 
 /**
@@ -24,8 +25,29 @@ const part1: Algorithm = {
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const lines = input?.split('\n').filter(Boolean) ?? [];
+
+    const largestTwoDigitNumber = (
+      bank: string
+    ): number => {
+      let maxJoltage = 0;
+      for (let i = 0; i < bank.length; i++) {
+        for (let j = i + 1; j < bank.length; j++) {
+          const joltageStr: string = bank[i] + bank[j];
+          const currentJoltage: number = parseInt(joltageStr, 10);
+          if (currentJoltage > maxJoltage) {
+            maxJoltage = currentJoltage;
+          }
+        }
+      }
+      return maxJoltage;
+    };
+
+    let totalOutputJoltage: number = 0;
+    lines.forEach((bank) => {
+      totalOutputJoltage += largestTwoDigitNumber(bank);
+    });
+    return totalOutputJoltage;
   },
 };
 
@@ -44,8 +66,47 @@ const part2: Algorithm = {
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    const lines = input?.split('\n').filter(Boolean) ?? [];
+    const NUM_DIGITS_TO_SELECT = 12;
+
+    const largestNumberFromBank = (
+      bank: string
+    ): bigint => {
+      if (bank.length < NUM_DIGITS_TO_SELECT) {
+        return BigInt(0);
+      }
+
+      const stack: string[] = [];
+      let digitsToDrop = bank.length - NUM_DIGITS_TO_SELECT;
+
+      for (const char of bank) {
+        while (
+          digitsToDrop > 0 &&
+          stack.length > 0 &&
+          stack[stack.length - 1] < char
+        ) {
+          stack.pop();
+          digitsToDrop--;
+        }
+        stack.push(char);
+      }
+
+      while (stack.length > NUM_DIGITS_TO_SELECT) {
+        stack.pop();
+      }
+
+      if (stack.length < NUM_DIGITS_TO_SELECT) {
+        return BigInt(0);
+      }
+
+      return BigInt(stack.join(''));
+    };
+
+    let totalOutputJoltage: bigint = BigInt(0);
+    lines.forEach((bank) => {
+      totalOutputJoltage += largestNumberFromBank(bank);
+    });
+    return Number(totalOutputJoltage);
   },
 };
 

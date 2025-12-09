@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -60,38 +60,108 @@ fn read_input() -> Result<String> {
 
 /// Solves part 1 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 1.
+/// Tracks active positions and counts encounters with '^'.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
-fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+/// The solution for Part 1 as a `u64`.
+fn part1(input: &str) -> u64 {
+    let grid: Vec<String> = input.lines().map(|s| s.to_string()).collect();
+
+    let mut total: u64 = 0;
+    let mut active: Vec<bool> = vec![false; grid[0].len()];
+
+    if let Some(s_pos) = grid[0].find('S') {
+        active[s_pos] = true;
+    }
+
+    for y in 1..grid.len() {
+        for x in 0..grid[y].len() {
+            if grid[y].chars().nth(x) == Some('^') && active[x] {
+                total += 1;
+                if x > 0 {
+                    active[x - 1] = true;
+                }
+                if x + 1 < grid[0].len() {
+                    active[x + 1] = true;
+                }
+                active[x] = false;
+            }
+        }
+    }
+
+    total
 }
 
 /// Solves part 2 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 2.
+/// Builds a DAG and uses memoized DP to count all paths.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
-fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+/// The solution for Part 2 as a `u64`.
+fn part2(input: &str) -> u64 {
+    use std::collections::HashMap;
+
+    let grid: Vec<String> = input.lines().map(|s| s.to_string()).collect();
+
+    let mut edges: HashMap<u64, Vec<u64>> = HashMap::new();
+    let mut active: Vec<Vec<u64>> = vec![Vec::new(); grid[0].len()];
+
+    if let Some(s_pos) = grid[0].find('S') {
+        active[s_pos].push(1);
+    }
+
+    let mut v: u64 = 2;
+
+    for y in 1..grid.len() {
+        for x in 0..grid[y].len() {
+            if grid[y].chars().nth(x) == Some('^') && !active[x].is_empty() {
+                for &u in &active[x] {
+                    edges.entry(u).or_insert_with(Vec::new).push(v);
+                }
+                active[x].clear();
+                if x > 0 {
+                    active[x - 1].push(v);
+                }
+                if x + 1 < grid[0].len() {
+                    active[x + 1].push(v);
+                }
+                v += 1;
+            }
+        }
+    }
+
+    for g in &active {
+        for &u in g {
+            edges.entry(u).or_insert_with(Vec::new).push(0);
+        }
+    }
+
+    let mut memo: HashMap<u64, u64> = HashMap::new();
+
+    fn dp(u: u64, edges: &HashMap<u64, Vec<u64>>, memo: &mut HashMap<u64, u64>) -> u64 {
+        if u == 0 {
+            return 1;
+        }
+        if let Some(&cached) = memo.get(&u) {
+            return cached;
+        }
+
+        let result = edges
+            .get(&u)
+            .map(|neighbors| neighbors.iter().map(|&v| dp(v, edges, memo)).sum())
+            .unwrap_or(0);
+
+        memo.insert(u, result);
+        result
+    }
+
+    dp(1, &edges, &mut memo)
 }
 
 /// Main entry point for the program.

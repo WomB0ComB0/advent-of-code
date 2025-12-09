@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -68,12 +68,29 @@ fn read_input() -> Result<String> {
 ///
 /// # Returns
 /// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
 fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+    fn largest_two_digit_number(bank: &str) -> u32 {
+        let chars: Vec<char> = bank.chars().collect();
+        let mut max_joltage = 0u32;
+
+        for i in 0..chars.len() {
+            for j in (i + 1)..chars.len() {
+                let joltage_str = format!("{}{}", chars[i], chars[j]);
+                if let Ok(current_joltage) = joltage_str.parse::<u32>() {
+                    if current_joltage > max_joltage {
+                        max_joltage = current_joltage;
+                    }
+                }
+            }
+        }
+        max_joltage
+    }
+
+    input
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|bank| largest_two_digit_number(bank))
+        .sum()
 }
 
 /// Solves part 2 of the puzzle.
@@ -85,13 +102,47 @@ fn part1(input: &str) -> u32 {
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
-fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+/// The solution for Part 2 as a `u64`.
+fn part2(input: &str) -> u64 {
+    const NUM_DIGITS_TO_SELECT: usize = 12;
+
+    fn largest_number_from_bank(bank: &str) -> u64 {
+        let chars: Vec<char> = bank.chars().collect();
+
+        if chars.len() < NUM_DIGITS_TO_SELECT {
+            return 0;
+        }
+
+        let mut stack: Vec<char> = Vec::new();
+        let mut digits_to_drop = chars.len() - NUM_DIGITS_TO_SELECT;
+
+        for &ch in &chars {
+            // Remove smaller digits from stack while we have drops remaining
+            while digits_to_drop > 0 && !stack.is_empty() && stack[stack.len() - 1] < ch {
+                stack.pop();
+                digits_to_drop -= 1;
+            }
+            stack.push(ch);
+        }
+
+        // Trim excess digits from the end
+        while stack.len() > NUM_DIGITS_TO_SELECT {
+            stack.pop();
+        }
+
+        if stack.len() < NUM_DIGITS_TO_SELECT {
+            return 0;
+        }
+
+        let result_str: String = stack.iter().collect();
+        result_str.parse::<u64>().unwrap_or(0)
+    }
+
+    input
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|bank| largest_number_from_bank(bank))
+        .sum()
 }
 
 /// Main entry point for the program.
@@ -115,8 +166,11 @@ fn main() -> Result<()> {
     // Read input with early validation
     let input = read_input()?;
 
-    println!("Part 1: {}", part1(&input));
-    println!("Part 2: {}", part2(&input));
+    let result1 = part1(&input);
+    let result2 = part2(&input);
+
+    println!("Part 1: {}", result1);
+    println!("Part 2: {}", result2);
 
     Ok(())
 }

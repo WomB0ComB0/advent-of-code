@@ -24,8 +24,38 @@ const part1: Algorithm = {
    * @returns The solution for part 1 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 1 solution here
-    return 0;
+    const grid: string[][] = [];
+    for (const line of input?.split('\n') ?? []) {
+      grid.push(line.split(''));
+    }
+    
+    // Helper function to get neighboring '@' cells
+    const nbhRolls = (y: number, x: number): [number, number][] => {
+      const rolls: [number, number][] = [];
+      for (let y2 = y - 1; y2 <= y + 1; y2++) {
+        for (let x2 = x - 1; x2 <= x + 1; x2++) {
+          if (
+            (y !== y2 || x !== x2) &&
+            y2 >= 0 && y2 < grid.length &&
+            x2 >= 0 && x2 < grid[0].length &&
+            grid[y2][x2] === '@'
+          ) {
+            rolls.push([y2, x2]);
+          }
+        }
+      }
+      return rolls;
+    };
+    
+    let total = 0;
+    for (let y = 0; y < grid.length; y++) {
+      for (let x = 0; x < grid[0].length; x++) {
+        if (grid[y][x] === '@') {
+          total += nbhRolls(y, x).length < 4 ? 1 : 0;
+        }
+      }
+    }
+    return total;
   },
 };
 
@@ -44,8 +74,56 @@ const part2: Algorithm = {
    * @returns The solution for part 2 as a number.
    */
   fn: (size: number, callIndex: number, input?: string): number => {
-    // TODO: implement part 2 solution here
-    return 0;
+    const grid: string[][] = [];
+    for (const line of input?.split('\n') ?? []) {
+      grid.push(line.split(''));
+    }
+    
+    // Helper function to get neighboring '@' cells
+    const nbhRolls = (y: number, x: number): [number, number][] => {
+      const rolls: [number, number][] = [];
+      for (let y2 = y - 1; y2 <= y + 1; y2++) {
+        for (let x2 = x - 1; x2 <= x + 1; x2++) {
+          if (
+            (y !== y2 || x !== x2) &&
+            y2 >= 0 && y2 < grid.length &&
+            x2 >= 0 && x2 < grid[0].length &&
+            grid[y2][x2] === '@'
+          ) {
+            rolls.push([y2, x2]);
+          }
+        }
+      }
+      return rolls;
+    };
+    
+    let total = 0;
+    const todo: [number, number][] = [];
+    
+    // Find all initial '@' positions
+    for (let y = 0; y < grid.length; y++) {
+      for (let x = 0; x < grid[0].length; x++) {
+        if (grid[y][x] === '@') {
+          todo.push([y, x]);
+        }
+      }
+    }
+    
+    // Process cells iteratively
+    while (todo.length > 0) {
+      const [y, x] = todo.pop()!;
+      if (grid[y][x] === '.') {
+        continue;
+      }
+      const nbh = nbhRolls(y, x);
+      if (nbh.length < 4) {
+        grid[y][x] = '.';
+        todo.push(...nbh);
+        total += 1;
+      }
+    }
+    
+    return total;
   },
 };
 

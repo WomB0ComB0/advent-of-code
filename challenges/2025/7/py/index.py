@@ -162,37 +162,72 @@ def solve_challenge(
 def part1(aoc_input: str) -> str:
     """
     Solves part 1 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 1.
+    Tracks active positions and counts encounters with '^'.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 1 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    grid = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    
+    total = 0
+    active = [False] * len(grid[0])
+    active[grid[0].find("S")] = True
+    
+    for y in range(1, len(grid)):
+        for x in range(len(grid[y])):
+            if grid[y][x] == "^" and active[x]:
+                total += 1
+                active[x - 1] = active[x + 1] = True
+                active[x] = False
+    
+    return str(total)
 
 
 def part2(aoc_input: str) -> str:
     """
     Solves part 2 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 2.
+    Builds a DAG and uses memoized DP to count all paths.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 2 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    from collections import defaultdict
+    from functools import cache
+    
+    grid = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    
+    edges = defaultdict(list)
+    active = [[] for _ in range(len(grid[0]))]
+    active[grid[0].index("S")].append(1)
+    v = 2
+    
+    for y in range(1, len(grid)):
+        for x in range(len(grid[y])):
+            if grid[y][x] == "^" and active[x]:
+                for u in active[x]:
+                    edges[u].append(v)
+                active[x] = []
+                for x2 in (x - 1, x + 1):
+                    active[x2].append(v)
+                v += 1
+    
+    for x, g in enumerate(active):
+        for u in g:
+            edges[u].append(0)
+    
+    @cache
+    def dp(u: int) -> int:
+        if u == 0:
+            return 1
+        return sum(dp(v) for v in edges[u])
+    
+    return str(dp(1))
 
 
 async def test_solutions():

@@ -162,37 +162,62 @@ def solve_challenge(
 def part1(aoc_input: str) -> str:
     """
     Solves part 1 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 1.
+    Transposes lines into columns and applies operations based on the last character.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 1 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    from functools import reduce
+    from operator import add, mul
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    
+    total = sum(
+        reduce([add, mul][c[-1] == "*"], map(int, c[:-1]))
+        for c in list(map(list, zip(*map(str.split, lines))))
+    )
+    
+    return str(total)
 
 
 def part2(aoc_input: str) -> str:
     """
     Solves part 2 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 2.
+    Parses multi-digit numbers from columns and applies operations.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 2 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    from functools import reduce
+    from operator import add, mul
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    
+    def process(left: int, right: int) -> int:
+        op = [add, mul][lines[-1][left] == "*"]
+        nums = []
+        for x in range(left, right + 1):
+            num = 0
+            for y in range(len(lines) - 1):
+                if x < len(lines[y]) and (char := lines[y][x]) != " ":
+                    num = num * 10 + int(char)
+            nums.append(num)
+        return reduce(op, nums)
+    
+    n = max(map(len, lines))
+    total = left = 0
+    for right in range(1, n):
+        if right < len(lines[-1]) and lines[-1][right] != " ":
+            total += process(left, right - 2)
+            left = right
+    
+    return str(total + process(left, n - 1))
 
 
 async def test_solutions():

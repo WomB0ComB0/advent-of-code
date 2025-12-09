@@ -162,37 +162,90 @@ def solve_challenge(
 def part1(aoc_input: str) -> str:
     """
     Solves part 1 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 1.
+    Finds maximum rectangle area formed by any two coordinate pairs.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 1 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    from itertools import combinations
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    data = [tuple(map(int, line.split(','))) for line in lines]
+    
+    def get_area(p1, p2):
+        x1, y1 = p1
+        x2, y2 = p2
+        return (abs(x1 - x2) + 1) * (abs(y1 - y2) + 1)
+    
+    n = len(data)
+    max_area = max(get_area(data[i], data[j]) for i, j in combinations(range(n), 2))
+    
+    return str(max_area)
 
 
 def part2(aoc_input: str) -> str:
     """
     Solves part 2 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 2.
+    Finds maximum rectangle area that doesn't intersect polygon edges.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 2 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    from itertools import combinations
+    
+    lines = [line.rstrip() for line in aoc_input.strip().split('\n')]
+    data = [tuple(map(int, line.split(','))) for line in lines]
+    
+    def get_area(p1, p2):
+        x1, y1 = p1
+        x2, y2 = p2
+        return (abs(x1 - x2) + 1) * (abs(y1 - y2) + 1)
+    
+    n = len(data)
+    hori = []
+    vert = []
+    
+    for i in range(n):
+        x, y = data[i]
+        x2, y2 = data[(i + 1) % n]
+        x1, x2 = min(x, x2), max(x, x2)
+        y1, y2 = min(y, y2), max(y, y2)
+        if x1 == x2:
+            vert.append((x1, x2, y1, y2))
+        else:
+            hori.append((x1, x2, y1, y2))
+    
+    def inside(x1, y1, x2, y2):
+        for a, b, y, _ in hori:
+            if (a < x1 < b or a < x2 < b) and y1 < y < y2:
+                return False
+            if (x1 == a or x2 == b) and y1 < y < y2:
+                return False
+        
+        for x, _, c, d in vert:
+            if (c < y1 < d or c < y2 < d) and x1 < x < x2:
+                return False
+            if (y1 == c or y2 == d) and x1 < x < x2:
+                return False
+        return True
+    
+    ans = 0
+    for p1, p2 in combinations(data, 2):
+        x1, x2 = min(p1[0], p2[0]), max(p1[0], p2[0])
+        y1, y2 = min(p1[1], p2[1]), max(p1[1], p2[1])
+        
+        if not inside(x1, y1, x2, y2):
+            continue
+        
+        ans = max(ans, get_area(p1, p2))
+    
+    return str(ans)
 
 
 async def test_solutions():

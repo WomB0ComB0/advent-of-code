@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -60,38 +60,131 @@ fn read_input() -> Result<String> {
 
 /// Solves part 1 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 1.
+/// Finds maximum rectangle area formed by any two coordinate pairs.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
-fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+/// The solution for Part 1 as a `u64`.
+fn part1(input: &str) -> u64 {
+    let data: Vec<(i64, i64)> = input
+        .lines()
+        .map(|line| {
+            let parts: Vec<&str> = line.split(',').collect();
+            (parts[0].parse().unwrap(), parts[1].parse().unwrap())
+        })
+        .collect();
+
+    fn get_area(p1: (i64, i64), p2: (i64, i64)) -> u64 {
+        let (x1, y1) = p1;
+        let (x2, y2) = p2;
+        ((x1 - x2).abs() + 1) as u64 * ((y1 - y2).abs() + 1) as u64
+    }
+
+    let n = data.len();
+    let mut max_area = 0;
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let area = get_area(data[i], data[j]);
+            max_area = max_area.max(area);
+        }
+    }
+
+    max_area
 }
 
 /// Solves part 2 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 2.
+/// Finds maximum rectangle area that doesn't intersect polygon edges.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
-fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
-    0
+/// The solution for Part 2 as a `u64`.
+fn part2(input: &str) -> u64 {
+    let data: Vec<(i64, i64)> = input
+        .lines()
+        .map(|line| {
+            let parts: Vec<&str> = line.split(',').collect();
+            (parts[0].parse().unwrap(), parts[1].parse().unwrap())
+        })
+        .collect();
+
+    fn get_area(p1: (i64, i64), p2: (i64, i64)) -> u64 {
+        let (x1, y1) = p1;
+        let (x2, y2) = p2;
+        ((x1 - x2).abs() + 1) as u64 * ((y1 - y2).abs() + 1) as u64
+    }
+
+    let n = data.len();
+    let mut hori: Vec<(i64, i64, i64, i64)> = Vec::new();
+    let mut vert: Vec<(i64, i64, i64, i64)> = Vec::new();
+
+    for i in 0..n {
+        let (x, y) = data[i];
+        let (x2, y2) = data[(i + 1) % n];
+        let x_min = x.min(x2);
+        let x_max = x.max(x2);
+        let y_min = y.min(y2);
+        let y_max = y.max(y2);
+
+        if x_min == x_max {
+            vert.push((x_min, x_max, y_min, y_max));
+        } else {
+            hori.push((x_min, x_max, y_min, y_max));
+        }
+    }
+
+    fn inside(
+        x1: i64,
+        y1: i64,
+        x2: i64,
+        y2: i64,
+        hori: &[(i64, i64, i64, i64)],
+        vert: &[(i64, i64, i64, i64)],
+    ) -> bool {
+        for &(a, b, y, _) in hori {
+            if (a < x1 && x1 < b || a < x2 && x2 < b) && y1 < y && y < y2 {
+                return false;
+            }
+            if (x1 == a || x2 == b) && y1 < y && y < y2 {
+                return false;
+            }
+        }
+
+        for &(x, _, c, d) in vert {
+            if (c < y1 && y1 < d || c < y2 && y2 < d) && x1 < x && x < x2 {
+                return false;
+            }
+            if (y1 == c || y2 == d) && x1 < x && x < x2 {
+                return false;
+            }
+        }
+        true
+    }
+
+    let mut ans = 0;
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let p1 = data[i];
+            let p2 = data[j];
+            let x1 = p1.0.min(p2.0);
+            let x2 = p1.0.max(p2.0);
+            let y1 = p1.1.min(p2.1);
+            let y2 = p1.1.max(p2.1);
+
+            if !inside(x1, y1, x2, y2, &hori, &vert) {
+                continue;
+            }
+
+            ans = ans.max(get_area(p1, p2));
+        }
+    }
+
+    ans
 }
 
 /// Main entry point for the program.

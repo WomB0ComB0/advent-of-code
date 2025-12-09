@@ -159,40 +159,84 @@ def solve_challenge(
         return None
 
 
+def nbh_rolls(y: int, x: int, grid: list[list[str]]) -> list[tuple[int, int]]:
+    """
+    Returns a list of neighboring positions containing '@'.
+    
+    Args:
+        y (int): The y-coordinate of the current cell.
+        x (int): The x-coordinate of the current cell.
+        grid (list[list[str]]): The 2D grid of characters.
+    
+    Returns:
+        list[tuple[int, int]]: List of (y, x) tuples for neighbors containing '@'.
+    """
+    rolls = []
+    for y2 in range(y - 1, y + 2):
+        for x2 in range(x - 1, x + 2):
+            if (
+                (y != y2 or x != x2)
+                and 0 <= y2 < len(grid)
+                and 0 <= x2 < len(grid[0])
+                and grid[y2][x2] == "@"
+            ):
+                rolls.append((y2, x2))
+    return rolls
+
+
 def part1(aoc_input: str) -> str:
     """
     Solves part 1 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 1.
+    Counts cells with '@' that have fewer than 4 neighbors containing '@'.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 1 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 1 has not yet been implemented.
     """
-    # Implement your part 1 solution here
-    raise NotImplementedError("Part 1 solution not implemented")
+    lines = aoc_input.strip().split('\n')
+    grid = [list(line) for line in lines]
+    
+    total = 0
+    for y in range(len(grid)):
+        for x in range(len(grid[0])):
+            if grid[y][x] == "@":
+                total += len(nbh_rolls(y, x, grid)) < 4
+    
+    return str(total)
 
 
 def part2(aoc_input: str) -> str:
     """
     Solves part 2 of the Advent of Code challenge for the current day.
-    This function should be implemented with the specific logic for Part 2.
+    Iteratively removes cells with '@' that have fewer than 4 neighbors.
 
     Args:
         aoc_input (str): The puzzle input as a string.
 
     Returns:
         str: The solution to part 2 as a string.
-
-    Raises:
-        NotImplementedError: If the solution for Part 2 has not yet been implemented.
     """
-    # Implement your part 2 solution here
-    raise NotImplementedError("Part 2 solution not implemented")
+    lines = aoc_input.strip().split('\n')
+    grid = [list(line) for line in lines]
+    
+    total = 0
+    todo = [
+        (y, x) for y, row in enumerate(grid) for x, val in enumerate(row) if val == "@"
+    ]
+    
+    while todo:
+        y, x = todo.pop()
+        if grid[y][x] == ".":
+            continue
+        nbh = nbh_rolls(y, x, grid)
+        if len(nbh) < 4:
+            grid[y][x] = "."
+            todo += nbh
+            total += 1
+    
+    return str(total)
 
 
 async def test_solutions():

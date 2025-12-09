@@ -7,7 +7,7 @@
 //! function orchestrating the execution and performance analysis.
 
 use anyhow::{Context, Result};
-use log::{LevelFilter};
+use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
@@ -58,39 +58,154 @@ fn read_input() -> Result<String> {
         .with_context(|| format!("Failed to read input from {:?}", input_path))
 }
 
+/// Disjoint Set Union (Union-Find) data structure.
+struct DSU {
+    parent: Vec<usize>,
+    size: Vec<usize>,
+}
+
+impl DSU {
+    fn new(n: usize) -> Self {
+        DSU {
+            parent: (0..n).collect(),
+            size: vec![1; n],
+        }
+    }
+
+    fn unite(&mut self, mut u: usize, mut v: usize) {
+        u = self.find(u);
+        v = self.find(v);
+        if u == v {
+            return;
+        }
+        if self.size[u] < self.size[v] {
+            std::mem::swap(&mut u, &mut v);
+        }
+        self.parent[v] = u;
+        self.size[u] += self.size[v];
+    }
+
+    fn find(&mut self, mut u: usize) -> usize {
+        while u != self.parent[u] {
+            self.parent[u] = self.parent[self.parent[u]];
+            u = self.parent[u];
+        }
+        u
+    }
+
+    fn sizes(&mut self) -> Vec<usize> {
+        let mut sizes = Vec::new();
+        for u in 0..self.parent.len() {
+            if u == self.find(u) {
+                sizes.push(self.size[u]);
+            }
+        }
+        sizes
+    }
+
+    fn is_fully_connected(&mut self) -> bool {
+        let root = self.find(0);
+        self.size[root] == self.size.len()
+    }
+}
+
 /// Solves part 1 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 1.
+/// Uses DSU to connect k shortest edges and find product of 3 largest components.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 1 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 1 of the puzzle.
-fn part1(input: &str) -> u32 {
-    // TODO: Implement part 1 solution
-    0
+/// The solution for Part 1 as a `u64`.
+fn part1(input: &str) -> u64 {
+    let coords: Vec<(f64, f64, f64)> = input
+        .lines()
+        .map(|line| line.trim())
+        .filter(|line| !line.is_empty())
+        .map(|line| {
+            let parts: Vec<&str> = line.split(',').collect();
+            (
+                parts[0].parse().unwrap(),
+                parts[1].parse().unwrap(),
+                parts[2].parse().unwrap(),
+            )
+        })
+        .collect();
+
+    let k = 1000;
+    let mut dsu = DSU::new(coords.len());
+
+    let mut edges: Vec<(f64, usize, usize)> = Vec::new();
+    for u in 0..coords.len() {
+        for v in (u + 1)..coords.len() {
+            let dx = coords[u].0 - coords[v].0;
+            let dy = coords[u].1 - coords[v].1;
+            let dz = coords[u].2 - coords[v].2;
+            let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+            edges.push((dist, u, v));
+        }
+    }
+
+    edges.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    for i in 0..k.min(edges.len()) {
+        let (_, u, v) = edges[i];
+        dsu.unite(u, v);
+    }
+
+    let mut sizes = dsu.sizes();
+    sizes.sort_by(|a, b| b.cmp(a));
+
+    (sizes[0] * sizes[1] * sizes[2]) as u64
 }
 
 /// Solves part 2 of the puzzle.
 ///
-/// This function takes the puzzle input as a string slice and should return
-/// the solution for Part 2.
+/// Connects points until fully connected and returns product of x-coordinates.
 ///
 /// # Arguments
 /// * `input` - A string slice containing the puzzle input.
 ///
 /// # Returns
-/// The solution for Part 2 as a `u32`.
-///
-/// # TODO
-/// Implement the actual logic for Part 2 of the puzzle.
-fn part2(input: &str) -> u32 {
-    // TODO: Implement part 2 solution
+/// The solution for Part 2 as a `u64`.
+fn part2(input: &str) -> u64 {
+    let coords: Vec<(i64, i64, i64)> = input
+        .lines()
+        .map(|line| line.trim())
+        .filter(|line| !line.is_empty())
+        .map(|line| {
+            let parts: Vec<&str> = line.split(',').collect();
+            (
+                parts[0].parse().unwrap(),
+                parts[1].parse().unwrap(),
+                parts[2].parse().unwrap(),
+            )
+        })
+        .collect();
+
+    let mut dsu = DSU::new(coords.len());
+
+    let mut edges: Vec<(f64, usize, usize)> = Vec::new();
+    for u in 0..coords.len() {
+        for v in (u + 1)..coords.len() {
+            let dx = (coords[u].0 - coords[v].0) as f64;
+            let dy = (coords[u].1 - coords[v].1) as f64;
+            let dz = (coords[u].2 - coords[v].2) as f64;
+            let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+            edges.push((dist, u, v));
+        }
+    }
+
+    edges.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    for (_, u, v) in edges {
+        dsu.unite(u, v);
+        if dsu.is_fully_connected() {
+            return (coords[u].0 * coords[v].0) as u64;
+        }
+    }
+
     0
 }
 
