@@ -6,8 +6,8 @@
  */
 
 import { spawn } from 'child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { config } from 'dotenv';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { cp } from 'shelljs';
 import { downloadInputForYearAndDay, getPuzzleDescription } from '../utils/aoc-actions';
 
@@ -122,9 +122,9 @@ const createFromTemplate = async () => {
       throw error;
     }
 
-    const notesPath = `${basePath}/notes.tex`;
+    const notesPath = `${basePath}/notes.typ`;
     console.log('📝 Creating notes template...');
-    const notesTemplate = createLatexTemplate(year, day);
+    const notesTemplate = createTypstTemplate(year, day);
     writeFileSync(notesPath, notesTemplate);
     console.log('✅ Notes template created');
   } else {
@@ -163,69 +163,48 @@ const createFromTemplate = async () => {
   console.log(`\n💡 To run your solution: npm run start run ${year} ${day} ${templateLang}`);
 };
 
-const createLatexTemplate = (year: string, day: string) => {
-  return `\\documentclass{article}
-\\usepackage[utf8]{inputenc}
-\\usepackage{amsmath}
-\\usepackage{amsthm}
-\\usepackage{amssymb}
-\\usepackage{graphicx}
-\\usepackage{algorithm}
-\\usepackage{algorithmic}
-\\usepackage{listings}
-\\usepackage{hyperref}
-\\usepackage{xcolor}
+const createTypstTemplate = (year: string, day: string) => {
+  return `#set document(title: "Advent of Code ${year} - Day ${day}", author: "Your Name")
+#set page(numbering: "1")
 
-\\title{Advent of Code ${year} - Day ${day}}
-\\author{Your Name}
-\\date{\\today}
+= Advent of Code ${year} - Day ${day}
 
-\\begin{document}
+== Problem Understanding
+// Brief description of the problem and key insights
 
-\\maketitle
+== Part 1
 
-\\section{Problem Understanding}
-% Brief description of the problem and key insights
+=== Approach
+// Describe your approach to solving part 1
 
-\\section{Part 1}
-\\subsection{Approach}
-% Describe your approach to solving part 1
+=== Implementation Details
+// Key implementation details, algorithms, data structures
 
-\\subsection{Implementation Details}
-% Key implementation details, algorithms, data structures
+=== Complexity Analysis
+- *Time Complexity:* $O(?)$
+- *Space Complexity:* $O(?)$
 
-\\subsection{Complexity Analysis}
-% Time and space complexity analysis
-\\begin{itemize}
-    \\item Time Complexity: $O(?)$
-    \\item Space Complexity: $O(?)$
-\\end{itemize}
+== Part 2
 
-\\section{Part 2}
-\\subsection{Approach}
-% Describe your approach to solving part 2
+=== Approach
+// Describe your approach to solving part 2
 
-\\subsection{Implementation Details}
-% Key implementation details, algorithms, data structures
+=== Implementation Details
+// Key implementation details, algorithms, data structures
 
-\\subsection{Complexity Analysis}
-% Time and space complexity analysis
-\\begin{itemize}
-    \\item Time Complexity: $O(?)$
-    \\item Space Complexity: $O(?)$
-\\end{itemize}
+=== Complexity Analysis
+- *Time Complexity:* $O(?)$
+- *Space Complexity:* $O(?)$
 
-\\section{Key Learnings}
-% What did you learn from this problem?
-% Any interesting techniques or observations?
+== Key Learnings
+// What did you learn from this problem?
+// Any interesting techniques or observations?
 
-\\section{Code Snippets}
-% Include important code snippets here
-\\begin{lstlisting}[language=Python]
+== Code Snippets
+\`\`\`python
 # Your code here
-\\end{lstlisting}
-
-\\end{document}`;
+\`\`\`
+`;
 };
 
 /**
