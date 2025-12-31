@@ -2,10 +2,11 @@ const robinKarpAlgorithm = (pat: string, txt: string, q: number) => {
   const d = 256;
   const M = pat.length;
   const N = txt.length;
-  let i, j;
-  let p = 0;
-  let t = 0;
-  let h = 1;
+  let i: number;
+  let j: number;
+  let p: number;
+  let t: number;
+  let h: number;
 
   for (i = 0; i < M - 1; i++) {
     h = (h * d) % q;

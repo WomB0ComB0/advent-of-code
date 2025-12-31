@@ -1,5 +1,7 @@
 const matrixMultiply = (mat1: number[][], mat2: number[][], res: number[][], N: number) => {
-  let i, j, k;
+  let i: number;
+  let j: number;
+  let k: number;
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++) {
       res[i][j] = 0;
